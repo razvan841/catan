@@ -3,5 +3,9 @@ namespace Catan.Shared.Enums;
 public enum MessageType
 {
     HealthRequest,
-    HealthResponse
+    HealthResponse,
+    RegisterRequest,
+    RegisterResponse,
+    QueueRequest,
+    QueueResponse
 }

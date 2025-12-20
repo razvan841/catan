@@ -23,8 +23,6 @@ public class TcpServer
         while (_isRunning)
         {
             var client = await _listener.AcceptTcpClientAsync();
-            Console.WriteLine("Client connected.");
-
             _ = Task.Run(() => HandleClientAsync(client));
         }
     }
@@ -37,39 +35,35 @@ public class TcpServer
         {
             while (client.Connected)
             {
-                // Read length prefix
                 var lengthBuffer = new byte[4];
                 int read = await stream.ReadAsync(lengthBuffer, 0, 4);
+                if (read == 0) break;
 
-                if (read == 0)
-                    break;
+                int length = BitConverter.ToInt32(lengthBuffer, 0);
+                var payload = new byte[length];
 
-                int messageLength = BitConverter.ToInt32(lengthBuffer, 0);
-
-                // Read payload
-                var payloadBuffer = new byte[messageLength];
                 int totalRead = 0;
-
-                while (totalRead < messageLength)
+                while (totalRead < length)
                 {
                     totalRead += await stream.ReadAsync(
-                        payloadBuffer,
+                        payload,
                         totalRead,
-                        messageLength - totalRead
-                    );
+                        length - totalRead);
                 }
 
-                await MessageHandler.HandleAsync(payloadBuffer, stream);
+                await MessageHandler.HandleAsync(payload, stream, client);
             }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Client error: {ex.Message}");
         }
         finally
         {
+            var username = ClientRegistry.GetUsername(client);
+            if (username != null)
+            {
+                ClientRegistry.Deregister(username);
+                Console.WriteLine($"User '{username}' deregistered.");
+            }
+
             client.Close();
-            Console.WriteLine("Client disconnected.");
         }
     }
 }
