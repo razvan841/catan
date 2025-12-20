@@ -106,16 +106,41 @@ static async Task HandleServerMessageAsync(TcpClientConnection connection, Serve
             Console.WriteLine("Match found with:");
             foreach (var p in match.Players)
                 Console.WriteLine($" - {p}");
-
-            await connection.SendAsync(new ClientMessage
+            while(true)
             {
-                Type = MessageType.MatchResponse,
-                Payload = new MatchResponseDto
+                Console.WriteLine("Are you ready to start the match? y - Yes | n - No");
+                var action = Console.ReadLine()!;
+
+                if(action == "y")
                 {
-                    Username = username,
-                    Accept = true
+                    await connection.SendAsync(new ClientMessage
+                    {
+                        Type = MessageType.MatchResponse,
+                        Payload = new MatchResponseDto
+                        {
+                            Username = username,
+                            Accept = true
+                        }
+                    });
+                    break;
+                } else if(action == "n")
+                {
+                    await connection.SendAsync(new ClientMessage
+                    {
+                        Type = MessageType.MatchResponse,
+                        Payload = new MatchResponseDto
+                        {
+                            Username = username,
+                            Accept = false
+                        }
+                    });
+                    break;
+                } else
+                {
+                    Console.WriteLine($"Answer {action} not allowed!");
+                    continue;
                 }
-            });
+            }
             break;
 
         case MessageType.MatchCanceledNotification:
