@@ -7,5 +7,8 @@ public enum MessageType
     RegisterRequest,
     RegisterResponse,
     QueueRequest,
-    QueueResponse
+    QueueResponse,
+    MatchFoundNotification,
+    MatchResponse,
+    MatchCanceledNotification
 }

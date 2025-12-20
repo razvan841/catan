@@ -2,5 +2,6 @@ namespace Catan.Shared.Networking.Dtos;
 
 public class QueueResponseDto
 {
-    public string Username { get; set; } = string.Empty;
+    public bool Success { get; set; }
+    public string Message { get; set; } = null!;
 }

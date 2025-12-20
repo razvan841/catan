@@ -1,5 +1,8 @@
 using System.Net;
 using System.Net.Sockets;
+using Catan.Server.Networking;
+using Catan.Server.Sessions;
+using Catan.Shared.Networking.Serialization;
 
 namespace Catan.Server.Networking.Tcp;
 
@@ -17,53 +20,79 @@ public class TcpServer
     {
         _isRunning = true;
         _listener.Start();
-
         Console.WriteLine("TCP Server started.");
 
         while (_isRunning)
         {
             var client = await _listener.AcceptTcpClientAsync();
-            _ = Task.Run(() => HandleClientAsync(client));
+            var session = new ClientSession(client);
+            SessionManager.Add(session);
+
+            Console.WriteLine("New client connected.");
+
+            _ = HandleClientAsync(session); // run without awaiting
         }
     }
 
-    private async Task HandleClientAsync(TcpClient client)
+    public void Stop()
     {
-        using var stream = client.GetStream();
+        _isRunning = false;
+        _listener.Stop();
+        Console.WriteLine("TCP Server stopped.");
+    }
+
+    private async Task HandleClientAsync(ClientSession session)
+    {
+        var client = session.Client;
+        var stream = session.Stream;
 
         try
         {
             while (client.Connected)
             {
-                var lengthBuffer = new byte[4];
-                int read = await stream.ReadAsync(lengthBuffer, 0, 4);
-                if (read == 0) break;
+                var payload = await ReadMessageAsync(stream);
+                if (payload == null) break;
 
-                int length = BitConverter.ToInt32(lengthBuffer, 0);
-                var payload = new byte[length];
-
-                int totalRead = 0;
-                while (totalRead < length)
-                {
-                    totalRead += await stream.ReadAsync(
-                        payload,
-                        totalRead,
-                        length - totalRead);
-                }
-
-                await MessageHandler.HandleAsync(payload, stream, client);
+                await MessageHandler.HandleAsync(payload, client);
             }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error with client {session.Username ?? session.Id.ToString()}: {ex.Message}");
         }
         finally
         {
-            var username = ClientRegistry.GetUsername(client);
-            if (username != null)
-            {
-                ClientRegistry.Deregister(username);
-                Console.WriteLine($"User '{username}' deregistered.");
-            }
-
+            session.State = SessionState.Disconnected;
+            SessionManager.Remove(session);
             client.Close();
+            Console.WriteLine($"User '{session.Username ?? session.Id.ToString()}' disconnected.");
         }
+    }
+
+    private async Task<byte[]?> ReadMessageAsync(NetworkStream stream)
+    {
+        var lengthBuffer = new byte[4];
+        int read = await stream.ReadAsync(lengthBuffer, 0, 4);
+
+        if (read == 0)
+            return null;
+
+        if (read < 4)
+            throw new IOException("Incomplete message length received.");
+
+        int length = BitConverter.ToInt32(lengthBuffer, 0);
+        var payload = new byte[length];
+
+        int totalRead = 0;
+        while (totalRead < length)
+        {
+            int bytesRead = await stream.ReadAsync(payload, totalRead, length - totalRead);
+            if (bytesRead == 0)
+                throw new IOException("Connection closed during message read.");
+
+            totalRead += bytesRead;
+        }
+
+        return payload;
     }
 }

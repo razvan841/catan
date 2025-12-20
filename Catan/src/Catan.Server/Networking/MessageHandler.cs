@@ -1,5 +1,6 @@
 using System.Net.Sockets;
 using System.Text.Json;
+using Catan.Server.Sessions;
 using Catan.Shared.Enums;
 using Catan.Shared.Networking.Messages;
 using Catan.Shared.Networking.Serialization;
@@ -9,26 +10,29 @@ namespace Catan.Server.Networking;
 
 public static class MessageHandler
 {
-    public static async Task HandleAsync(
-        byte[] payload,
-        NetworkStream stream,
-        TcpClient client)
+    public static async Task HandleAsync(byte[] payload, TcpClient client)
     {
-        var clientMessage =
-            JsonMessageSerializer.Deserialize<ClientMessage>(payload);
+        var session = SessionManager.GetByClient(client);
+        if (session == null) return;
+
+        var clientMessage = JsonMessageSerializer.Deserialize<ClientMessage>(payload);
 
         switch (clientMessage.Type)
         {
             case MessageType.HealthRequest:
-                await HandleHealthAsync(stream);
+                await HandleHealthAsync(session);
                 break;
 
             case MessageType.RegisterRequest:
-                await HandleRegisterAsync(clientMessage, stream, client);
+                await HandleRegisterAsync(clientMessage, session);
                 break;
 
             case MessageType.QueueRequest:
-                await HandleQueueAsync(clientMessage, stream, client);
+                await HandleQueueAsync(clientMessage, session);
+                break;
+
+            case MessageType.MatchResponse:
+                HandleMatchResponse(clientMessage, session);
                 break;
 
             default:
@@ -37,78 +41,74 @@ public static class MessageHandler
         }
     }
 
-    private static async Task HandleHealthAsync(NetworkStream stream)
+    private static async Task HandleHealthAsync(ClientSession session)
     {
         var response = new ServerMessage
         {
             Type = MessageType.HealthResponse,
-            Payload = new
-            {
-                status = "OK",
-                serverTime = DateTime.UtcNow
-            }
+            Payload = new { status = "OK", serverTime = DateTime.UtcNow }
         };
-
         var data = JsonMessageSerializer.Serialize(response);
-        await stream.WriteAsync(data);
+        await session.Stream.WriteAsync(data);
     }
 
-    private static async Task HandleRegisterAsync(
-        ClientMessage message,
-        NetworkStream stream,
-        TcpClient client)
+    private static async Task HandleRegisterAsync(ClientMessage message, ClientSession session)
     {
         var dto = ((JsonElement)message.Payload!).Deserialize<RegisterRequestDto>()!;
 
-        bool success = ClientRegistry.TryRegister(dto.Username, client);
+        if (SessionManager.UsernameExists(dto.Username))
+        {
+            await SendResponseAsync(session, new ServerMessage
+            {
+                Type = MessageType.RegisterResponse,
+                Payload = new RegisterResponseDto
+                {
+                    Success = false,
+                    Message = "Username already in use"
+                }
+            });
+            return;
+        }
 
-        var response = new ServerMessage
+        session.Register(dto.Username);
+        SessionManager.Add(session);
+
+        await SendResponseAsync(session, new ServerMessage
         {
             Type = MessageType.RegisterResponse,
             Payload = new RegisterResponseDto
             {
-                Success = success,
-                Message = success
-                    ? "Registered successfully"
-                    : "Username already in use"
+                Success = true,
+                Message = "Registered successfully"
             }
-        };
-        if(success)
-        {
-            Console.WriteLine($"Client connected, using username: {dto.Username}");
-        }
-
-        var bytes = JsonMessageSerializer.Serialize(response);
-        await stream.WriteAsync(bytes);
+        });
     }
 
-    private static async Task HandleQueueAsync(
-        ClientMessage message,
-        NetworkStream stream,
-        TcpClient client)
+    private static async Task HandleQueueAsync(ClientMessage message, ClientSession session)
     {
         var dto = ((JsonElement)message.Payload!).Deserialize<QueueRequestDto>()!;
-        // TODO: Add logic for joining the queue
-        bool success = true;
-        var response = new ServerMessage
+        bool success = MatchmakingService.TryEnqueue(session, out string reason);
+
+        await SendResponseAsync(session, new ServerMessage
         {
             Type = MessageType.QueueResponse,
-            Payload = new RegisterResponseDto
+            Payload = new QueueResponseDto
             {
                 Success = success,
-                Message = success
-                    ? "In the queue!"
-                    : "Could not join the queue"
+                Message = reason
             }
-        };
+        });
+    }
 
-        if(success)
-        {
-            Console.WriteLine($"User: {dto.Username} joined queue successfully!");
-        }
-        
+    private static void HandleMatchResponse(ClientMessage message, ClientSession session)
+    {
+        var dto = ((JsonElement)message.Payload!).Deserialize<MatchResponseDto>()!;
+        MatchmakingService.HandleMatchResponse(session, dto);
+    }
 
-        var bytes = JsonMessageSerializer.Serialize(response);
-        await stream.WriteAsync(bytes);
+    private static async Task SendResponseAsync(ClientSession session, ServerMessage msg)
+    {
+        var data = JsonMessageSerializer.Serialize(msg);
+        await session.Stream.WriteAsync(data);
     }
 }
