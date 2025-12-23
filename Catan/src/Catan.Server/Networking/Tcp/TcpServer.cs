@@ -30,7 +30,7 @@ public class TcpServer
 
             Console.WriteLine("New client connected.");
 
-            _ = HandleClientAsync(session); // run without awaiting
+            _ = HandleClientAsync(session);
         }
     }
 

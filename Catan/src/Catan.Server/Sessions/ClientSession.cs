@@ -1,17 +1,16 @@
 using System.Net.Sockets;
+using Catan.Server.Game;
 
 namespace Catan.Server.Sessions;
 
 public class ClientSession
 {
     public Guid Id { get; } = Guid.NewGuid();
-    public string Username { get; private set; } = null!;
     public TcpClient Client { get; }
     public NetworkStream Stream { get; }
-    public DateTime ConnectedAt { get; } = DateTime.UtcNow;
-    public DateTime LastHeartbeat { get; set; } = DateTime.UtcNow;
+    public string? Username { get; private set; }
     public SessionState State { get; set; } = SessionState.Connected;
-    public Guid? GameId { get; set; }
+    public GameSession? GameSession { get; set; }
 
     public ClientSession(TcpClient client)
     {

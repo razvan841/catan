@@ -16,6 +16,11 @@ public static class MessageHandler
         if (session == null) return;
 
         var clientMessage = JsonMessageSerializer.Deserialize<ClientMessage>(payload);
+        if (session.State == SessionState.InMatch)
+        {
+            await session.GameSession!.HandleMessageAsync(session, clientMessage);
+            return;
+        }
 
         switch (clientMessage.Type)
         {
@@ -87,7 +92,7 @@ public static class MessageHandler
     private static async Task HandleQueueAsync(ClientMessage message, ClientSession session)
     {
         var dto = ((JsonElement)message.Payload!).Deserialize<QueueRequestDto>()!;
-        bool success = MatchmakingService.TryEnqueue(session, out string reason);
+        bool success = Matchmaking.MatchmakingService.TryEnqueue(session, out string reason);
 
         await SendResponseAsync(session, new ServerMessage
         {
@@ -103,7 +108,7 @@ public static class MessageHandler
     private static void HandleMatchResponse(ClientMessage message, ClientSession session)
     {
         var dto = ((JsonElement)message.Payload!).Deserialize<MatchResponseDto>()!;
-        MatchmakingService.HandleMatchResponse(session, dto);
+        Matchmaking.MatchmakingService.HandleMatchResponse(session, dto);
     }
 
     private static async Task SendResponseAsync(ClientSession session, ServerMessage msg)
