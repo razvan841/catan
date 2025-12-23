@@ -132,4 +132,41 @@ internal static class BoardMappings
         new int[]{49, 53}, // 70
         new int[]{50, 53}, // 71
     };
+    // Ports
+    internal static readonly Dictionary<string, int> PortsToPlace = new Dictionary<string, int>
+    {
+        {"generic", 1},
+        {"stone", 1},
+        {"brick", 1},
+        {"wood", 1},
+        {"sheep", 1},
+        {"wheat", 1}
+    };
+
+    // Possible vertices for ports
+    internal static readonly int[] PossiblePortVertices = new int[]
+    {
+        0, 1, 2, 3, 4, 5, 6, 7, 10, 11,
+        15, 16, 20, 21, 26, 27, 32, 33,
+        37, 38, 42, 43, 46, 47, 48, 49,
+        50, 51, 52, 53
+    };
+
+    // Tile resources
+    internal static readonly Dictionary<string, int> TilesToPlace = new Dictionary<string, int>
+    {
+        {"sand", 1},
+        {"stone", 3},
+        {"brick", 3},
+        {"wood", 4},
+        {"sheep", 4},
+        {"wheat", 4}
+    };
+
+    // Tile number tokens
+    internal static readonly Dictionary<int, int> TokensToPlace = new Dictionary<int, int>
+    {
+        {2, 1}, {3, 2}, {4, 2}, {5, 2}, {6, 2}, 
+        {8, 2}, {9, 2}, {10, 2}, {11, 2}, {12, 1}
+    };
 }
