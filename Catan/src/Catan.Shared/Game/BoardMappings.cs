@@ -57,6 +57,29 @@ internal static class BoardMappings
         new int[]{17}, // 52
         new int[]{18} // 53
     };
+
+    internal static readonly int[][] TileAdjacencyMapping = new int[][]
+    {
+        new int[]{1, 3, 4}, // 0
+        new int[]{0, 2, 4, 5}, // 1
+        new int[]{1, 5, 6}, // 2
+        new int[]{0, 4, 7, 8}, // 3
+        new int[]{0, 1, 3, 5, 8, 9}, // 4
+        new int[]{1, 2, 4, 6, 9, 10}, // 5
+        new int[]{2, 5, 10, 11}, // 6
+        new int[]{3, 8, 12}, // 7
+        new int[]{3, 4, 7, 9, 12, 13}, // 8
+        new int[]{4, 5, 8, 10, 13, 14}, // 9
+        new int[]{5, 6, 9, 11, 14, 15}, // 10
+        new int[]{6, 10, 15}, // 11
+        new int[]{7, 8, 13, 16}, // 12
+        new int[]{8, 9, 12, 14, 16, 17}, // 13
+        new int[]{9, 10, 13, 15, 17, 18}, // 14
+        new int[]{10, 11, 14, 18}, // 15
+        new int[]{12, 13, 17}, // 16
+        new int[]{13, 14, 16, 18}, // 17
+        new int[]{14, 15, 18}, // 18
+    };
     internal static readonly int[][] EdgeMapping = new int[][]
     {
         new int[]{0, 3}, // 0

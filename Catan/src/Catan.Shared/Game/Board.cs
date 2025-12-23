@@ -37,13 +37,33 @@ public class Board
         var tilesToPlace = new Dictionary<string, int>(BoardMappings.TilesToPlace);
         var tokensToPlace = new Dictionary<int, int>(BoardMappings.TokensToPlace);
 
+        int?[] assignedTokens = new int?[HEX_COUNT];
+
         for (int i = 0; i < HEX_COUNT; i++)
         {
             var availableResources = tilesToPlace.Where(kv => kv.Value > 0).Select(kv => kv.Key).ToList();
-            var availableTokens = tokensToPlace.Where(kv => kv.Value > 0).Select(kv => kv.Key).ToList();
-
             string resource = availableResources[rand.Next(availableResources.Count)];
-            int token = availableTokens[rand.Next(availableTokens.Count)];
+            tilesToPlace[resource]--;
+
+            List<int> availableTokens = tokensToPlace.Where(kv => kv.Value > 0).Select(kv => kv.Key).ToList();
+
+            // Prevent 6 or 8 adjacent
+            var forbiddenTokens = new HashSet<int>();
+            foreach (var adj in BoardMappings.TileAdjacencyMapping[i])
+            {
+                if (assignedTokens[adj].HasValue && (assignedTokens[adj].Value == 6 || assignedTokens[adj].Value == 8))
+                {
+                    forbiddenTokens.Add(assignedTokens[adj].Value);
+                }
+            }
+
+            var filteredTokens = availableTokens.Where(t => !forbiddenTokens.Contains(t)).ToList();
+
+            if (!filteredTokens.Any())
+                filteredTokens = availableTokens; // fallback if no choice left
+
+            int token = filteredTokens[rand.Next(filteredTokens.Count)];
+            tokensToPlace[token]--;
 
             Tiles.Add(new HexTile
             {
@@ -52,10 +72,10 @@ public class Board
                 HasRobber = resource == "sand"
             });
 
-            tilesToPlace[resource]--;
-            tokensToPlace[token]--;
+            assignedTokens[i] = token;
         }
     }
+
 
     private void InitializeVertices()
     {
