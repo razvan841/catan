@@ -61,9 +61,14 @@ public class Board
 
             if (!filteredTokens.Any())
                 filteredTokens = availableTokens; // fallback if no choice left
-
-            int token = filteredTokens[rand.Next(filteredTokens.Count)];
-            tokensToPlace[token]--;
+            
+            int token = 0;
+            if (resource != "sand")
+            {
+                token = filteredTokens[rand.Next(filteredTokens.Count)];
+                tokensToPlace[token]--;
+            }
+            
 
             Tiles.Add(new HexTile
             {

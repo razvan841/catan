@@ -179,11 +179,11 @@ internal static class BoardMappings
     internal static readonly Dictionary<string, int> TilesToPlace = new Dictionary<string, int>
     {
         {"sand", 1},
-        {"stone", 3},
-        {"brick", 3},
-        {"wood", 4},
-        {"sheep", 4},
-        {"wheat", 4}
+        {"Stone", 3},
+        {"Brick", 3},
+        {"Wood", 4},
+        {"Sheep", 4},
+        {"Wheat", 4}
     };
 
     // Tile number tokens
