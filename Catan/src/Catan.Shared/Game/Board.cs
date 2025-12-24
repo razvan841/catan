@@ -3,14 +3,15 @@ namespace Catan.Shared.Game;
 
 public class Board
 {
-    public List<HexTile> Tiles { get; private set; } = new();
+    public List<HexTile> Tiles { get; private set; }
     public List<Road> Roads { get; init; }
     public List<Settlement> Settlements { get; init; }
     public List<City> Cities { get; init; }
     public List<Vertex> Vertices { get; init; }
+    public List<Vertex> UnbuildableVertices { get; init; } = new List<Vertex>();
     public List<Edge> Edges { get; init; }
     public List<Port> Ports { get; init; }
-    public HexTile RobberTile { get; private set; }
+    public HexTile? RobberTile { get; private set; }
     const int HEX_COUNT = 19;
     const int VERTEX_COUNT = 54;
     const int EDGE_COUNT = 72;
@@ -90,7 +91,7 @@ public class Board
                 int token = Tiles[i].NumberToken;
                 if (token == 6 || token == 8)
                 {
-                    foreach (var adj in BoardMappings.TileAdjacencyMapping[i])
+                    foreach (var adj in BoardMappings.TileToTileAdjacencyMapping[i])
                     {
                         if (adj < 0 || adj >= Tiles.Count)
                             throw new Exception($"TileAdjacencyMapping index out of range: {adj}");
@@ -111,7 +112,7 @@ public class Board
         Vertices.Clear();
         for (int i = 0; i < VERTEX_COUNT; i++)
         {
-            var adjacentTiles = BoardMappings.VertexAdjacencyMapping[i]
+            var adjacentTiles = BoardMappings.VertexToTileAdjacencyMapping[i]
                 .Select(index =>
                 {
                     if (index < 0 || index >= Tiles.Count)
@@ -128,7 +129,7 @@ public class Board
     {
         for (int i = 0; i < VERTEX_COUNT; i++)
         {
-            var adjacentTiles = BoardMappings.VertexAdjacencyMapping[i].Select(index => Tiles[index]).ToList();
+            var adjacentTiles = BoardMappings.VertexToTileAdjacencyMapping[i].Select(index => Tiles[index]).ToList();
             Vertices.Add(new Vertex(i, adjacentTiles));
         }
     }
@@ -147,10 +148,7 @@ public class Board
 
     private void InitializePorts()
     {
-        var portsToPlace = new Dictionary<string, int>(BoardMappings.PortsToPlace);
-        var allowedPortVertices = BoardMappings.PossiblePortVertices.ToList();
 
-        // TODO: assign ports to vertices randomly or following rules
         Ports.Add(new Port(PortType.Generic, GetVertex(1), 3));
         Ports.Add(new Port(PortType.Generic, GetVertex(4), 3));
         Ports.Add(new Port(PortType.Generic, GetVertex(2), 3));
@@ -168,7 +166,6 @@ public class Board
         Ports.Add(new Port(PortType.Sheep, GetVertex(11), 2));
         Ports.Add(new Port(PortType.Stone, GetVertex(38), 2));
         Ports.Add(new Port(PortType.Stone, GetVertex(43), 2));
-        // TODO: Fix index of brick port
         Ports.Add(new Port(PortType.Brick, GetVertex(15), 2));
         Ports.Add(new Port(PortType.Brick, GetVertex(20), 2));
     }
@@ -247,7 +244,7 @@ public class Board
                 int token = Tiles[i].NumberToken;
                 if (token == 6 || token == 8)
                 {
-                    foreach (int adj in BoardMappings.TileAdjacencyMapping[i])
+                    foreach (int adj in BoardMappings.TileToTileAdjacencyMapping[i])
                     {
                         int adjToken = Tiles[adj].NumberToken;
                         if (adjToken == 6 || adjToken == 8)
@@ -263,7 +260,7 @@ public class Board
 
         for (int i = 0; i < VERTEX_COUNT; i++)
         {
-            var adjacentTiles = BoardMappings.VertexAdjacencyMapping[i].Select(index => Tiles[index]).ToList();
+            var adjacentTiles = BoardMappings.VertexToTileAdjacencyMapping[i].Select(index => Tiles[index]).ToList();
             Vertices[i].AdjacentTiles.Clear();
             Vertices[i].AdjacentTiles.AddRange(adjacentTiles);
         }
@@ -278,8 +275,191 @@ public class Board
         return Vertices[index];
     }
 
-    public void PlaceRoad(Player player, Vertex vertex) {}
-    public void PlaceSettlement(Player player, Vertex vertex) {}
-    public void UpgradeSettlementToCity(Player player, Settlement settlement) {}
-    public List<Player> GetPlayersOnTile(HexTile tile) => new();
+    public enum RoadPlacementResult
+    {
+        Success,
+        EdgeOccupied,
+        NotConnected
+    }
+    public enum SettlementPlacementResult
+    {
+        Success,
+        VertexOccupied,
+        VertexUnbuildable,
+        NotConnected
+    }
+
+    public enum SettlementUpgradeResult
+    {
+        Success,
+        SettlementDoesntExist,
+        DifferentOwner
+    }
+
+    public RoadPlacementResult PlaceRoad(Player player, Edge edge, bool setup)
+    {
+        if(!setup)
+        {
+            var result = CanPlaceRoad(player, edge);
+            if (result != RoadPlacementResult.Success)
+                return result;
+        }
+
+        var road = new Road(player, edge);
+        Roads.Add(road);
+        edge.Road = road;
+        return RoadPlacementResult.Success;
+    }
+
+    public RoadPlacementResult CanPlaceRoad(Player player, Edge edge)
+    {
+        if (edge.Road != null)
+            return RoadPlacementResult.EdgeOccupied;
+
+        bool isConnected = false;
+
+        foreach (var vertex in new[] { edge.VertexA, edge.VertexB })
+        {
+            // Vertex has another player's settlement/city can't connect through here
+            if (Settlements.Any(s => s.Vertex == vertex && s.Owner != player) ||
+                Cities.Any(c => c.Vertex == vertex && c.Owner != player))
+                continue;
+            if (Settlements.Any(s => s.Vertex == vertex && s.Owner == player) ||
+                Cities.Any(c => c.Vertex == vertex && c.Owner == player))
+            {
+                isConnected = true;
+                break;
+            }
+
+            int vertexIndex = vertex.Index;
+            foreach (var edgeIndex in BoardMappings.VertexToEdgeMapping[vertexIndex])
+            {
+                var adjacentEdge = Edges[edgeIndex];
+                if (adjacentEdge.Road != null && adjacentEdge.Road.Owner == player)
+                {
+                    isConnected = true;
+                    break;
+                }
+            }
+
+            if (isConnected) break;
+        }
+
+        if (!isConnected)
+            return RoadPlacementResult.NotConnected;
+
+        return RoadPlacementResult.Success;
+    }
+
+    public SettlementPlacementResult PlaceSettlement(Player player, Vertex vertex, bool setup)
+    {
+        if(!setup)
+        {
+            var result = CanPlaceSettlement(player, vertex);
+            if (result != SettlementPlacementResult.Success)
+                return result;
+        }
+        
+        var settlement = new Settlement(player, vertex);
+        Settlements.Add(settlement);
+        vertex.IsSettlement = true;
+        MarkAdjacentVerticesUnbuildable(vertex);
+        return SettlementPlacementResult.Success;
+    }
+
+    public SettlementPlacementResult CanPlaceSettlement(Player player, Vertex vertex)
+    {
+        if (vertex.IsSettlement == true || vertex.IsCity == true)
+            return SettlementPlacementResult.VertexOccupied;
+        if (UnbuildableVertices.Contains(vertex))
+            return SettlementPlacementResult.VertexUnbuildable;
+
+        bool isConnected = false;
+        int vertexIndex = vertex.Index;
+
+        foreach (var edgeIndex in BoardMappings.VertexToEdgeMapping[vertexIndex])
+        {
+            var edge = Edges[edgeIndex];
+            if (edge.Road != null && edge.Road.Owner == player)
+            {
+                isConnected = true;
+                break;
+            }
+        }
+
+        if (!isConnected)
+            return SettlementPlacementResult.NotConnected;
+
+        return SettlementPlacementResult.Success;
+    }
+    private void MarkAdjacentVerticesUnbuildable(Vertex vertex)
+    {
+        int vertexIndex = vertex.Index;
+        var edges = BoardMappings.VertexToEdgeMapping[vertexIndex];
+
+        foreach (int edgeIndex in edges)
+        {
+            var edge = Edges[edgeIndex];
+            Vertex otherVertex = edge.VertexA == vertex ? edge.VertexB : edge.VertexA;
+
+            if (!UnbuildableVertices.Contains(otherVertex))
+                UnbuildableVertices.Add(otherVertex);
+        }
+    }
+    public SettlementUpgradeResult UpgradeSettlementToCity(Player player, Settlement settlement)
+    {
+        if (!Settlements.Contains(settlement))
+            return SettlementUpgradeResult.SettlementDoesntExist;
+
+        if (settlement.Owner != player)
+            return SettlementUpgradeResult.DifferentOwner;
+
+        Settlements.Remove(settlement);
+        settlement.Vertex.IsSettlement = false;
+
+        var city = new City(player, settlement.Vertex);
+        Cities.Add(city);
+        settlement.Vertex.IsCity = true;
+        return SettlementUpgradeResult.Success;
+    }
+
+    public List<(Player player, Dictionary<string, int> counts)> GetPlayersOnTile(HexTile tile)
+    {
+        int tileIndex = tile.Index;
+
+        if (tileIndex < 0 || tileIndex >= BoardMappings.TileToVerticesAdjacencyMapping.Length)
+            throw new ArgumentOutOfRangeException(nameof(tile), $"Tile index {tileIndex} is out of range.");
+
+        var adjacentVertexIndices = BoardMappings.TileToVerticesAdjacencyMapping[tileIndex];
+
+        var playerCounts = new Dictionary<Player, Dictionary<string, int>>();
+
+        foreach (var vertexIndex in adjacentVertexIndices)
+        {
+            var vertex = Vertices[vertexIndex];
+
+            var settlement = Settlements.FirstOrDefault(s => s.Vertex == vertex);
+            if (settlement != null)
+            {
+                if (!playerCounts.ContainsKey(settlement.Owner))
+                    playerCounts[settlement.Owner] = new Dictionary<string, int> { { "settlement", 0 }, { "city", 0 } };
+
+                playerCounts[settlement.Owner]["settlement"] += 1;
+            }
+
+            var city = Cities.FirstOrDefault(c => c.Vertex == vertex);
+            if (city != null)
+            {
+                if (!playerCounts.ContainsKey(city.Owner))
+                    playerCounts[city.Owner] = new Dictionary<string, int> { { "settlement", 0 }, { "city", 0 } };
+
+                playerCounts[city.Owner]["city"] += 1;
+            }
+        }
+
+        return playerCounts.Select(kv => (kv.Key, kv.Value)).ToList();
+    }
+
+
+
 }

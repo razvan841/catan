@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace Catan.Shared.Game;
-public class City : Settlement
+namespace Catan.Shared.Game
 {
-    // City extends Settlement
+    public class City : Settlement
+    {
+        public City(Player owner, Vertex vertex) : base(owner, vertex) {}
+    }
 }
