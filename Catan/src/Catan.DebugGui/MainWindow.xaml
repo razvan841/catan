@@ -1,0 +1,10 @@
+﻿<Window x:Class="Catan.DebugGui.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Catan Debug GUI"
+        Width="1000"
+        Height="800">
+    <Grid>
+        <Canvas x:Name="BoardCanvas" Background="Beige"/>
+    </Grid>
+</Window>

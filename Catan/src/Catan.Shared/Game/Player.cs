@@ -12,6 +12,11 @@ public class Player
     public List<Port> Ports { get; init; } = new();
     public List<DevelopmentCard> DevelopmentCards { get; init; } = new();
 
+    public Player(string name)
+    {
+        Username = name;
+    }
+
     // Game Actions
     public void BuildRoad(/* parameters */) {}
     public void BuildSettlement(/* parameters */) {}

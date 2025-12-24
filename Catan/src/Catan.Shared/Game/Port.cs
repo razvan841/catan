@@ -24,5 +24,6 @@ public class Port
         Type = type;
         Vertex = vertex;
         Ratio = ratio;
+        vertex.Port = this;
     }
 }

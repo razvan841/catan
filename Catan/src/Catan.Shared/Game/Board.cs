@@ -35,9 +35,7 @@ public class Board
         Random rand = new Random();
 
         var tilesToPlace = new Dictionary<string, int>(BoardMappings.TilesToPlace);
-        var tokensToPlace = new Dictionary<int, int>(BoardMappings.TokensToPlace);
-
-        int?[] assignedTokens = new int?[HEX_COUNT];
+        Tiles.Clear();
 
         for (int i = 0; i < HEX_COUNT; i++)
         {
@@ -45,41 +43,69 @@ public class Board
             string resource = availableResources[rand.Next(availableResources.Count)];
             tilesToPlace[resource]--;
 
-            List<int> availableTokens = tokensToPlace.Where(kv => kv.Value > 0).Select(kv => kv.Key).ToList();
-
-            // Prevent 6 or 8 adjacent
-            var forbiddenTokens = new HashSet<int>();
-            foreach (var adj in BoardMappings.TileAdjacencyMapping[i])
-            {
-                if (assignedTokens[adj].HasValue && (assignedTokens[adj].Value == 6 || assignedTokens[adj].Value == 8))
-                {
-                    forbiddenTokens.Add(assignedTokens[adj].Value);
-                }
-            }
-
-            var filteredTokens = availableTokens.Where(t => !forbiddenTokens.Contains(t)).ToList();
-
-            if (!filteredTokens.Any())
-                filteredTokens = availableTokens; // fallback if no choice left
-            
-            int token = 0;
-            if (resource != "sand")
-            {
-                token = filteredTokens[rand.Next(filteredTokens.Count)];
-                tokensToPlace[token]--;
-            }
-            
-
             Tiles.Add(new HexTile
             {
                 Resource = resource == "sand" ? null : Enum.Parse<ResourceType>(resource, true),
-                NumberToken = token,
+                NumberToken = 0,
                 HasRobber = resource == "sand"
             });
-
-            assignedTokens[i] = token;
         }
+
+        var tokensToPlace = new List<int>();
+        foreach (var kv in BoardMappings.TokensToPlace)
+        {
+            for (int i = 0; i < kv.Value; i++)
+            {
+                tokensToPlace.Add(kv.Key);
+            }
+        }
+
+        bool validAssignment = false;
+
+        while (!validAssignment)
+        {
+            var shuffledTokens = tokensToPlace.OrderBy(_ => rand.Next()).ToList();
+
+            int tokenIndex = 0;
+            for (int i = 0; i < Tiles.Count; i++)
+            {
+                if (Tiles[i].Resource != null)
+                {
+                    Tiles[i].NumberToken = shuffledTokens[tokenIndex];
+                    tokenIndex++;
+                }
+                else
+                {
+                    Tiles[i].NumberToken = 0;
+                }
+            }
+
+            // Check adjacency rule
+            validAssignment = true;
+            for (int i = 0; i < HEX_COUNT; i++)
+            {
+                var token = Tiles[i].NumberToken;
+                if (token == 6 || token == 8)
+                {
+                    foreach (var adj in BoardMappings.TileAdjacencyMapping[i])
+                    {
+                        var adjToken = Tiles[adj].NumberToken;
+                        if (adjToken == 6 || adjToken == 8)
+                        {
+                            validAssignment = false;
+                            break;
+                        }
+                    }
+                }
+                if (!validAssignment) break;
+            }
+        }
+
+        var desertTile = Tiles.FirstOrDefault(t => t.Resource == null);
+        if (desertTile != null)
+            desertTile.HasRobber = true;
     }
+
 
 
     private void InitializeVertices()
@@ -87,7 +113,7 @@ public class Board
         for (int i = 0; i < VERTEX_COUNT; i++)
         {
             var adjacentTiles = BoardMappings.VertexAdjacencyMapping[i].Select(index => Tiles[index]).ToList();
-            Vertices.Add(new Vertex(adjacentTiles));
+            Vertices.Add(new Vertex(i, adjacentTiles));
         }
     }
 
@@ -104,9 +130,29 @@ public class Board
     private void InitializePorts()
     {
         var portsToPlace = new Dictionary<string, int>(BoardMappings.PortsToPlace);
-        var possibleVertices = BoardMappings.PossiblePortVertices.ToList();
+        var allowedPortVertices = BoardMappings.PossiblePortVertices.ToList();
 
         // TODO: assign ports to vertices randomly or following rules
+        Ports.Add(new Port(PortType.Generic, GetVertex(1), 3));
+        Ports.Add(new Port(PortType.Generic, GetVertex(4), 3));
+        Ports.Add(new Port(PortType.Generic, GetVertex(2), 3));
+        Ports.Add(new Port(PortType.Generic, GetVertex(6), 3));
+        Ports.Add(new Port(PortType.Generic, GetVertex(21), 3));
+        Ports.Add(new Port(PortType.Generic, GetVertex(27), 3));
+        Ports.Add(new Port(PortType.Generic, GetVertex(50), 3));
+        Ports.Add(new Port(PortType.Generic, GetVertex(53), 3));
+
+        Ports.Add(new Port(PortType.Wheat, GetVertex(48), 2));
+        Ports.Add(new Port(PortType.Wheat, GetVertex(52), 2));
+        Ports.Add(new Port(PortType.Wood, GetVertex(37), 2));
+        Ports.Add(new Port(PortType.Wood, GetVertex(42), 2));
+        Ports.Add(new Port(PortType.Sheep, GetVertex(7), 2));
+        Ports.Add(new Port(PortType.Sheep, GetVertex(11), 2));
+        Ports.Add(new Port(PortType.Stone, GetVertex(38), 2));
+        Ports.Add(new Port(PortType.Stone, GetVertex(43), 2));
+        // TODO: Fix index of brick port
+        Ports.Add(new Port(PortType.Brick, GetVertex(43), 2));
+        Ports.Add(new Port(PortType.Brick, GetVertex(43), 2));
     }
 
 
@@ -159,6 +205,14 @@ public class Board
         {
             tile.HasRobber = tile.Resource == null;
         }
+    }
+
+    public Vertex GetVertex(int index)
+    {
+        if (index < 0 || index >= Vertices.Count)
+            throw new ArgumentOutOfRangeException(nameof(index), $"Vertex index {index} is out of range.");
+
+        return Vertices[index];
     }
 
     public void PlaceRoad(Player player /* parameters */) {}
