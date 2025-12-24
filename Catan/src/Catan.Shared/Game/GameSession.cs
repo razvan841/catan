@@ -16,10 +16,9 @@ namespace Catan.Shared.Game
             if (players == null || players.Count != 4)
                 throw new ArgumentException("Game must have exactly four players!");
 
-            Players = [.. players]; // copy to prevent external modifications
+            Players = [.. players];
         }
 
-        // Lifecycle
         public void StartGame()
         {
             RandomizePlayerOrder();

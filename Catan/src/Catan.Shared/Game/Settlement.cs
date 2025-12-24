@@ -7,6 +7,7 @@ namespace Catan.Shared.Game;
 
 public class Settlement
 {
-    public Player Owner { get; init; }
+    public required Player Owner { get; init; }
     // Possibly store location
+    public required Vertex Vertex { get; init; }
 }
