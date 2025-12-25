@@ -11,7 +11,7 @@ public class Board
     public List<Vertex> UnbuildableVertices { get; init; } = new List<Vertex>();
     public List<Edge> Edges { get; init; }
     public List<Port> Ports { get; init; }
-    public HexTile? RobberTile { get; private set; }
+    public HexTile? RobberTile { get; set; }
     const int HEX_COUNT = 19;
     const int VERTEX_COUNT = 54;
     const int EDGE_COUNT = 72;

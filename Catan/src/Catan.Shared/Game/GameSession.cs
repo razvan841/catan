@@ -12,6 +12,13 @@ namespace Catan.Shared.Game
             MainGame,
             EndGame
         }
+        public enum TurnPhase
+        {
+            NotStarted,
+            Roll,
+            Trade,
+            Build
+        }
 
         public enum ActionResult
         {
@@ -27,7 +34,12 @@ namespace Catan.Shared.Game
             NotEnoughResourcesOtherPlayer,
             NotYourTurn,
             NoCardsLeft,
-            NotSetupPhase
+            WrongPhase,
+            WrongTurnPhase,
+            RobberAlreadyThere,
+            NoResourcesToSteal,
+            NoDiscardNecessary,
+            NotEnoughDiscardedCards
         }
 
         internal static class Costs
@@ -71,6 +83,7 @@ namespace Catan.Shared.Game
 
         public int CurrentPlayerIndex { get; private set; }
         public GamePhase Phase { get; private set; } = GamePhase.NotStarted;
+        public TurnPhase Turn { get; private set; } = TurnPhase.NotStarted;
 
         public Player? LongestRoadOwner { get; private set; }
         public Player? LargestArmyOwner { get; private set; }
@@ -157,7 +170,7 @@ namespace Catan.Shared.Game
         public ActionResult BuildInitialSettlement(Player player, Vertex vertex)
         {
             if (Phase != GamePhase.SetupRound1 && Phase != GamePhase.SetupRound2)
-                return ActionResult.NotSetupPhase;
+                return ActionResult.WrongPhase;
 
             if (GetCurrentPlayer() != player)
                 return ActionResult.NotYourTurn;
@@ -173,13 +186,15 @@ namespace Catan.Shared.Game
             }
 
             player.Settlements.Add(settlement);
+            if (vertex.Port != null && !player.Ports.Contains(vertex.Port.Type))
+                player.Ports.Add(vertex.Port.Type);
             return ActionResult.Success;
         }
 
         public ActionResult BuildInitialRoad(Player player, Edge edge)
         {
             if (Phase != GamePhase.SetupRound1 && Phase != GamePhase.SetupRound2)
-                return ActionResult.NotSetupPhase;
+                return ActionResult.WrongPhase;
 
             if (GetCurrentPlayer() != player)
                 return ActionResult.NotYourTurn;
@@ -216,7 +231,7 @@ namespace Catan.Shared.Game
         public ActionResult BuildRoad(Player player, Edge edge)
         {
             if (Phase != GamePhase.MainGame)
-                return ActionResult.NotYourTurn;
+                return ActionResult.WrongPhase;
 
             if (GetCurrentPlayer() != player)
                 return ActionResult.NotYourTurn;
@@ -236,7 +251,7 @@ namespace Catan.Shared.Game
 
             player.Pay(Costs.Road);
             player.Roads.Add(road);
-
+            Turn = TurnPhase.Build;
             UpdateLongestRoad(player);
             return ActionResult.Success;
         }
@@ -244,7 +259,7 @@ namespace Catan.Shared.Game
         public ActionResult BuildSettlement(Player player, Vertex vertex)
         {
             if (Phase != GamePhase.MainGame)
-                return ActionResult.NotYourTurn;
+                return ActionResult.WrongPhase;
 
             if (GetCurrentPlayer() != player)
                 return ActionResult.NotYourTurn;
@@ -261,17 +276,18 @@ namespace Catan.Shared.Game
             {
                 return ActionResult.VertexOccupied;
             }
-
+            if (vertex.Port != null && !player.Ports.Contains(vertex.Port.Type))
+                player.Ports.Add(vertex.Port.Type);
             player.Pay(Costs.Settlement);
             player.Settlements.Add(settlement);
-
+            Turn = TurnPhase.Build;
             return ActionResult.Success;
         }
 
         public ActionResult UpgradeToCity(Player player, Settlement settlement)
         {
             if (Phase != GamePhase.MainGame)
-                return ActionResult.NotYourTurn;
+                return ActionResult.WrongPhase;
 
             if (GetCurrentPlayer() != player)
                 return ActionResult.NotYourTurn;
@@ -292,14 +308,14 @@ namespace Catan.Shared.Game
             player.Pay(Costs.City);
             player.Settlements.Remove(settlement);
             player.Cities.Add(city);
-
+            Turn = TurnPhase.Build;
             return ActionResult.Success;
         }
 
         public ActionResult BuyDevelopmentCard(Player player)
         {
             if (Phase != GamePhase.MainGame)
-                return ActionResult.NotYourTurn;
+                return ActionResult.WrongPhase;
 
             if (GetCurrentPlayer() != player)
                 return ActionResult.NotYourTurn;
@@ -313,9 +329,154 @@ namespace Catan.Shared.Game
 
             player.Pay(Costs.DevelopmentCard);
             player.DevelopmentCards.Add(card);
+            Turn = TurnPhase.Build;
+            return ActionResult.Success;
+        }
+
+        public ActionResult TradeWithBank(Player player, ResourceType currency, ResourceType target)
+        {
+            if (Phase != GamePhase.MainGame)
+                return ActionResult.WrongPhase;
+
+            if (Turn != TurnPhase.Trade)
+                return ActionResult.WrongTurnPhase;
+
+            if (GetCurrentPlayer() != player)
+                return ActionResult.NotYourTurn;
+            var cost = new Dictionary<ResourceType, int> { { currency, 4 } };
+            if (!player.CanAfford(cost))
+                return ActionResult.NotEnoughResources;
+            player.Pay(cost);
+            player.Receive(new Dictionary<ResourceType, int> { { target, 1 } });
+            return ActionResult.Success;
+        }
+
+        public ActionResult TradeWithPort(Player player, ResourceType currency, ResourceType target, PortType portType)
+        {
+            if (Phase != GamePhase.MainGame)
+                return ActionResult.WrongPhase;
+
+            if (Turn != TurnPhase.Trade)
+                return ActionResult.WrongTurnPhase;
+
+            if (GetCurrentPlayer() != player)
+                return ActionResult.NotYourTurn;
+            
+            if(!player.Ports.Contains(portType))
+                return ActionResult.NoPortAccess;
+            var cost = new Dictionary<ResourceType, int> { { currency, 2 } };
+            if (!player.CanAfford(cost))
+                return ActionResult.NotEnoughResources;
+
+            player.Pay(cost);
+            player.Receive(new Dictionary<ResourceType, int> { { target, 1 } });
+            return ActionResult.Success;
+        }
+
+        public ActionResult TradeWithPlayer(Player currentPlayer, Player otherPlayer, Dictionary<ResourceType, int> payment, Dictionary<ResourceType, int> offer)
+        {
+            if (Phase != GamePhase.MainGame)
+                return ActionResult.WrongPhase;
+
+            if (Turn != TurnPhase.Trade)
+                return ActionResult.WrongTurnPhase;
+
+            if (GetCurrentPlayer() != currentPlayer)
+                return ActionResult.NotYourTurn;
+
+            if (!currentPlayer.CanAfford(payment))
+                return ActionResult.NotEnoughResources;
+            if (!otherPlayer.CanAfford(offer))
+                return ActionResult.NotEnoughResourcesOtherPlayer;
+                
+            currentPlayer.Pay(payment);
+            otherPlayer.Pay(offer);
+            currentPlayer.Receive(offer);
+            otherPlayer.Receive(payment);
+            return ActionResult.Success;
+        }
+
+        public ActionResult MoveRobber(Player player, HexTile hexTile, out List<Player> stealablePlayers)
+        {
+            stealablePlayers = new List<Player>();
+            if (Phase != GamePhase.MainGame)
+                return ActionResult.WrongPhase;
+
+            if (GetCurrentPlayer() != player)
+                return ActionResult.NotYourTurn;
+            if (hexTile.HasRobber)
+                return ActionResult.RobberAlreadyThere;
+            if (Board.RobberTile != null)
+                Board.RobberTile.HasRobber = false;
+
+            Board.RobberTile = hexTile;
+            hexTile.HasRobber = true;
+            var adjacentVertices = BoardMappings.TileToVerticesAdjacencyMapping[hexTile.Index];
+            foreach (var vertexIndex in adjacentVertices)
+            {
+                var vertex = Board.Vertices[vertexIndex];
+                if (vertex.Owner != null && vertex.Owner != player && !stealablePlayers.Contains(vertex.Owner))
+                {
+                    stealablePlayers.Add(vertex.Owner);
+                }
+            }
 
             return ActionResult.Success;
         }
+        public ActionResult StealResource(Player receiver, Player target)
+        {
+            if (Phase != GamePhase.MainGame)
+                return ActionResult.WrongPhase;
+
+            if (GetCurrentPlayer() != receiver)
+                return ActionResult.NotYourTurn;
+
+            var availableResources = target.Resources
+                .Where(kv => kv.Value > 0)
+                .Select(kv => kv.Key)
+                .ToList();
+
+            if (!availableResources.Any())
+                return ActionResult.NoResourcesToSteal;
+
+            var randomResource = availableResources[Random.Shared.Next(availableResources.Count)];
+
+            target.Resources[randomResource]--;
+            receiver.Resources[randomResource]++;
+
+            return ActionResult.Success;
+        }
+
+        public ActionResult DiscardResources(Player player, Dictionary<ResourceType, int> discardedCards)
+        {
+            if (Phase != GamePhase.MainGame)
+                return ActionResult.WrongPhase;
+
+            int totalResources = player.Resources.Values.Sum();
+
+            if (totalResources <= 7)
+                return ActionResult.NoDiscardNecessary;
+
+            int requiredDiscard = totalResources / 2;
+
+            int discardCount = discardedCards.Values.Sum();
+            if (discardCount != requiredDiscard)
+                return ActionResult.NotEnoughDiscardedCards;
+
+            foreach (var kv in discardedCards)
+            {
+                if (!player.Resources.ContainsKey(kv.Key) || player.Resources[kv.Key] < kv.Value)
+                    return ActionResult.NotEnoughResources;
+            }
+
+            foreach (var kv in discardedCards)
+            {
+                player.Resources[kv.Key] -= kv.Value;
+            }
+
+            return ActionResult.Success;
+        }
+
 
         // =========================
         // Dice & Resources
@@ -327,10 +488,52 @@ namespace Catan.Shared.Game
                 return;
 
             int dice = Random.Shared.Next(1, 7) + Random.Shared.Next(1, 7);
-            DistributeResources(dice);
+            if (dice != 7)
+            {
+                DistributeResources(dice);  
+            }
+            
         }
 
-        public void DistributeResources(int diceNumber) { }
+        public void DistributeResources(int diceNumber)
+        {
+            foreach (var tile in Board.Tiles)
+            {
+                if (tile.NumberToken != diceNumber || tile.Resource == null)
+                    continue;
+                if (tile.HasRobber)
+                    continue;
+
+                var vertexIndices = BoardMappings.TileToVerticesAdjacencyMapping[tile.Index];
+                foreach (var vertexIndex in vertexIndices)
+                {
+                    var vertex = Board.Vertices[vertexIndex];
+                    if (vertex.IsSettlement)
+                    {
+                        var settlement = Board.Settlements.FirstOrDefault(s => s.Vertex == vertex);
+                        if (settlement != null)
+                        {
+                            settlement.Owner.Receive(new Dictionary<ResourceType, int>
+                            {
+                                { tile.Resource.Value, 1 }
+                            });
+                        }
+                    }
+                    else if (vertex.IsCity)
+                    {
+                        var city = Board.Cities.FirstOrDefault(c => c.Vertex == vertex);
+                        if (city != null)
+                        {
+                            city.Owner.Receive(new Dictionary<ResourceType, int>
+                            {
+                                { tile.Resource.Value, 2 }
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
 
         // =========================
         // Achievements

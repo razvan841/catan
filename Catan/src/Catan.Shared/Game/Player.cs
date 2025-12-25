@@ -16,7 +16,7 @@ public class Player
     public List<Road> Roads { get; init; } = new();
     public List<Settlement> Settlements { get; init; } = new();
     public List<City> Cities { get; init; } = new();
-    public List<Port> Ports { get; init; } = new();
+    public List<PortType> Ports { get; init; } = new();
     public List<DevelopmentCard> DevelopmentCards { get; init; } = new();
     public int KnightsPlayed { get; set; }
     public bool LongestRoadOwner { get; set; }
