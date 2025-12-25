@@ -39,7 +39,10 @@ namespace Catan.Shared.Game
             RobberAlreadyThere,
             NoResourcesToSteal,
             NoDiscardNecessary,
-            NotEnoughDiscardedCards
+            NotEnoughDiscardedCards,
+            UnplayableDevelopmentCardType,
+            NoDevelopmentCardType,
+            AlreadyPlayedDevelopmentCard
         }
 
         internal static class Costs
@@ -84,7 +87,7 @@ namespace Catan.Shared.Game
         public int CurrentPlayerIndex { get; private set; }
         public GamePhase Phase { get; private set; } = GamePhase.NotStarted;
         public TurnPhase Turn { get; private set; } = TurnPhase.NotStarted;
-
+        public bool PlayedDevelopmentCardThisTurn = false;
         public Player? LongestRoadOwner { get; private set; }
         public Player? LargestArmyOwner { get; private set; }
 
@@ -228,16 +231,16 @@ namespace Catan.Shared.Game
         // Main Game Actions
         // =========================
 
-        public ActionResult BuildRoad(Player player, Edge edge)
+        public ActionResult BuildRoad(Player player, Edge edge, bool free)
         {
             if (Phase != GamePhase.MainGame)
                 return ActionResult.WrongPhase;
 
             if (GetCurrentPlayer() != player)
                 return ActionResult.NotYourTurn;
-
-            if (!player.CanAfford(Costs.Road))
-                return ActionResult.NotEnoughResources;
+            if(!free)
+                if (!player.CanAfford(Costs.Road))
+                    return ActionResult.NotEnoughResources;
 
             Road road;
             try
@@ -248,8 +251,8 @@ namespace Catan.Shared.Game
             {
                 return ActionResult.NotConnected;
             }
-
-            player.Pay(Costs.Road);
+            if(!free)
+                player.Pay(Costs.Road);
             player.Roads.Add(road);
             Turn = TurnPhase.Build;
             UpdateLongestRoad(player);
@@ -332,7 +335,143 @@ namespace Catan.Shared.Game
             Turn = TurnPhase.Build;
             return ActionResult.Success;
         }
+        public ActionResult CheckPlayDevelopmentCard(Player player, DevelopmentCardType developmentCardType)
+        {
+            if (Phase != GamePhase.MainGame)
+                return ActionResult.WrongPhase;
 
+            if (GetCurrentPlayer() != player)
+                return ActionResult.NotYourTurn;
+            
+            if (developmentCardType == DevelopmentCardType.VictoryPoint)
+                return ActionResult.UnplayableDevelopmentCardType;
+
+            if (PlayedDevelopmentCardThisTurn)
+                return ActionResult.AlreadyPlayedDevelopmentCard;
+
+            var card = player.DevelopmentCards.FirstOrDefault(c => c.Type == developmentCardType);
+            if (card == null)
+                return ActionResult.NoDevelopmentCardType;
+
+            return ActionResult.Success;
+        }
+        public ActionResult PlayKnightCard(Player player, HexTile tile)
+        {
+            if (Phase != GamePhase.MainGame)
+                return ActionResult.WrongPhase;
+
+            if (GetCurrentPlayer() != player)
+                return ActionResult.NotYourTurn;
+            
+            if (PlayedDevelopmentCardThisTurn)
+                return ActionResult.AlreadyPlayedDevelopmentCard;
+
+            var card = player.DevelopmentCards.FirstOrDefault(c => c.Type == DevelopmentCardType.Knight);
+            if (card == null)
+                return ActionResult.NoDevelopmentCardType;
+
+            player.DevelopmentCards.Remove(card);
+
+            PlayedDevelopmentCardThisTurn = true;
+            return ActionResult.Success;
+        }
+        public ActionResult PlayRoadBuildingCard(Player player, Edge road1, Edge road2)
+        {
+            if (Phase != GamePhase.MainGame)
+                return ActionResult.WrongPhase;
+
+            if (GetCurrentPlayer() != player)
+                return ActionResult.NotYourTurn;
+
+            if (PlayedDevelopmentCardThisTurn)
+                return ActionResult.AlreadyPlayedDevelopmentCard;
+
+            var card = player.DevelopmentCards.FirstOrDefault(c => c.Type == DevelopmentCardType.RoadBuilding);
+            if (card == null)
+                return ActionResult.NoDevelopmentCardType;
+
+            player.DevelopmentCards.Remove(card);
+
+            var result1 = BuildRoad(player, road1, true);
+            if (result1 != ActionResult.Success)
+                return result1;
+
+            var result2 = BuildRoad(player, road2, true);
+            if (result2 != ActionResult.Success)
+                return result2;
+            PlayedDevelopmentCardThisTurn = true;
+            return ActionResult.Success;
+        }
+        public ActionResult PlayMonopolyCard(Player player, ResourceType resourceType)
+        {
+            if (Phase != GamePhase.MainGame)
+                return ActionResult.WrongPhase;
+
+            if (GetCurrentPlayer() != player)
+                return ActionResult.NotYourTurn;
+
+            if (PlayedDevelopmentCardThisTurn)
+                return ActionResult.AlreadyPlayedDevelopmentCard;
+
+            var card = player.DevelopmentCards.FirstOrDefault(c => c.Type == DevelopmentCardType.Monopoly);
+            if (card == null)
+                return ActionResult.NoDevelopmentCardType;
+
+            player.DevelopmentCards.Remove(card);
+            foreach (var target in Players)
+            {
+                if (target == player) 
+                    continue; 
+
+                int amount = target.Resources[resourceType];
+                if (amount > 0)
+                {
+                    target.Resources[resourceType] -= amount;
+                    player.Resources[resourceType] += amount;
+                }
+            }
+            PlayedDevelopmentCardThisTurn = true;
+            return ActionResult.Success;
+        }
+        public ActionResult PlayYearOfPlentyCard(Player player, ResourceType resourceType1, ResourceType resourceType2)
+        {
+            if (Phase != GamePhase.MainGame)
+                return ActionResult.WrongPhase;
+
+            if (GetCurrentPlayer() != player)
+                return ActionResult.NotYourTurn;
+
+            if (PlayedDevelopmentCardThisTurn)
+                return ActionResult.AlreadyPlayedDevelopmentCard;
+
+            var card = player.DevelopmentCards.FirstOrDefault(c => c.Type == DevelopmentCardType.YearOfPlenty);
+            if (card == null)
+                return ActionResult.NoDevelopmentCardType;
+
+            player.DevelopmentCards.Remove(card);
+
+            Dictionary<ResourceType, int> materials;
+            if (resourceType1 != resourceType2)
+            {
+                materials = new Dictionary<ResourceType, int>
+                {
+                    { resourceType1, 1 },
+                    { resourceType2, 1 }
+                };
+            }
+            else
+            {
+                materials = new Dictionary<ResourceType, int>
+                {
+                    { resourceType1, 2 }
+                };
+            }
+
+            player.Receive(materials);
+            PlayedDevelopmentCardThisTurn = true;
+
+            return ActionResult.Success;
+        }
         public ActionResult TradeWithBank(Player player, ResourceType currency, ResourceType target)
         {
             if (Phase != GamePhase.MainGame)
