@@ -110,19 +110,6 @@ public class Board
 
         // Update vertex adjacency
         Vertices.Clear();
-        for (int i = 0; i < VERTEX_COUNT; i++)
-        {
-            var adjacentTiles = BoardMappings.VertexToTileAdjacencyMapping[i]
-                .Select(index =>
-                {
-                    if (index < 0 || index >= Tiles.Count)
-                        throw new Exception($"VertexAdjacencyMapping index out of range: {index}");
-                    return Tiles[index];
-                })
-                .ToList();
-
-            Vertices.Add(new Vertex(i, adjacentTiles));
-        }
     }
 
     private void InitializeVertices()
@@ -296,19 +283,16 @@ public class Board
         DifferentOwner
     }
 
-    public RoadPlacementResult PlaceRoad(Player player, Edge edge, bool setup)
+    public Road PlaceRoad(Player owner, Edge edge)
     {
-        if(!setup)
-        {
-            var result = CanPlaceRoad(player, edge);
-            if (result != RoadPlacementResult.Success)
-                return result;
-        }
+        var result = CanPlaceRoad(owner, edge);
+        if (result != RoadPlacementResult.Success)
+            throw new InvalidOperationException(result.ToString());
 
-        var road = new Road(player, edge);
+        var road = new Road(owner, edge);
         Roads.Add(road);
         edge.Road = road;
-        return RoadPlacementResult.Success;
+        return road;
     }
 
     public RoadPlacementResult CanPlaceRoad(Player player, Edge edge)
@@ -320,10 +304,10 @@ public class Board
 
         foreach (var vertex in new[] { edge.VertexA, edge.VertexB })
         {
-            // Vertex has another player's settlement/city can't connect through here
             if (Settlements.Any(s => s.Vertex == vertex && s.Owner != player) ||
                 Cities.Any(c => c.Vertex == vertex && c.Owner != player))
                 continue;
+
             if (Settlements.Any(s => s.Vertex == vertex && s.Owner == player) ||
                 Cities.Any(c => c.Vertex == vertex && c.Owner == player))
             {
@@ -331,11 +315,10 @@ public class Board
                 break;
             }
 
-            int vertexIndex = vertex.Index;
-            foreach (var edgeIndex in BoardMappings.VertexToEdgeMapping[vertexIndex])
+            foreach (var edgeIndex in BoardMappings.VertexToEdgeMapping[vertex.Index])
             {
                 var adjacentEdge = Edges[edgeIndex];
-                if (adjacentEdge.Road != null && adjacentEdge.Road.Owner == player)
+                if (adjacentEdge.Road?.Owner == player)
                 {
                     isConnected = true;
                     break;
@@ -345,53 +328,40 @@ public class Board
             if (isConnected) break;
         }
 
-        if (!isConnected)
-            return RoadPlacementResult.NotConnected;
-
-        return RoadPlacementResult.Success;
+        return isConnected ? RoadPlacementResult.Success : RoadPlacementResult.NotConnected;
     }
 
-    public SettlementPlacementResult PlaceSettlement(Player player, Vertex vertex, bool setup)
+
+    public Settlement BuildSettlement(Player owner, Vertex vertex)
     {
-        if(!setup)
-        {
-            var result = CanPlaceSettlement(player, vertex);
-            if (result != SettlementPlacementResult.Success)
-                return result;
-        }
-        
-        var settlement = new Settlement(player, vertex);
+        var result = CanPlaceSettlement(owner, vertex);
+        if (result != SettlementPlacementResult.Success)
+            throw new InvalidOperationException(result.ToString());
+
+        var settlement = new Settlement(owner, vertex);
         Settlements.Add(settlement);
         vertex.IsSettlement = true;
         MarkAdjacentVerticesUnbuildable(vertex);
-        return SettlementPlacementResult.Success;
+        return settlement;
     }
 
     public SettlementPlacementResult CanPlaceSettlement(Player player, Vertex vertex)
     {
-        if (vertex.IsSettlement == true || vertex.IsCity == true)
+        if (vertex.IsSettlement || vertex.IsCity)
             return SettlementPlacementResult.VertexOccupied;
+
         if (UnbuildableVertices.Contains(vertex))
             return SettlementPlacementResult.VertexUnbuildable;
 
-        bool isConnected = false;
-        int vertexIndex = vertex.Index;
+        bool isConnected = BoardMappings.VertexToEdgeMapping[vertex.Index]
+            .Select(i => Edges[i])
+            .Any(e => e.Road?.Owner == player);
 
-        foreach (var edgeIndex in BoardMappings.VertexToEdgeMapping[vertexIndex])
-        {
-            var edge = Edges[edgeIndex];
-            if (edge.Road != null && edge.Road.Owner == player)
-            {
-                isConnected = true;
-                break;
-            }
-        }
-
-        if (!isConnected)
-            return SettlementPlacementResult.NotConnected;
-
-        return SettlementPlacementResult.Success;
+        return isConnected
+            ? SettlementPlacementResult.Success
+            : SettlementPlacementResult.NotConnected;
     }
+
     private void MarkAdjacentVerticesUnbuildable(Vertex vertex)
     {
         int vertexIndex = vertex.Index;
@@ -406,21 +376,22 @@ public class Board
                 UnbuildableVertices.Add(otherVertex);
         }
     }
-    public SettlementUpgradeResult UpgradeSettlementToCity(Player player, Settlement settlement)
+    
+    public City UpgradeSettlement(Player owner, Settlement settlement)
     {
         if (!Settlements.Contains(settlement))
-            return SettlementUpgradeResult.SettlementDoesntExist;
+            throw new InvalidOperationException("Settlement does not exist.");
 
-        if (settlement.Owner != player)
-            return SettlementUpgradeResult.DifferentOwner;
+        if (settlement.Owner != owner)
+            throw new InvalidOperationException("Wrong owner.");
 
         Settlements.Remove(settlement);
         settlement.Vertex.IsSettlement = false;
 
-        var city = new City(player, settlement.Vertex);
+        var city = new City(owner, settlement.Vertex);
         Cities.Add(city);
         settlement.Vertex.IsCity = true;
-        return SettlementUpgradeResult.Success;
+        return city;
     }
 
     public List<(Player player, Dictionary<string, int> counts)> GetPlayersOnTile(HexTile tile)
