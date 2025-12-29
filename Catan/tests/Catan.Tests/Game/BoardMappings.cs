@@ -163,7 +163,6 @@ internal static class BoardMappings
         new int[]{57, 58, 63, 64, 68, 69}, // 17
         new int[]{59, 60, 64, 65, 70, 71}, // 18
     };
-
     // Which vertices does a tile see
     internal static readonly int[][] TileToVerticesAdjacencyMapping = new int[][]
     {

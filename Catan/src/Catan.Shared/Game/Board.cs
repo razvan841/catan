@@ -262,6 +262,14 @@ public class Board
         return Vertices[index];
     }
 
+    public Edge GetEdge(int index)
+    {
+        if (index < 0 || index >= Edges.Count)
+            throw new ArgumentOutOfRangeException(nameof(index), $"Edge index {index} is out of range.");
+
+        return Edges[index];
+    }
+
     public enum RoadPlacementResult
     {
         Success,
@@ -332,9 +340,9 @@ public class Board
     }
 
 
-    public Settlement BuildSettlement(Player owner, Vertex vertex)
+    public Settlement BuildSettlement(Player owner, Vertex vertex, bool ignoreRoadRequirement)
     {
-        var result = CanPlaceSettlement(owner, vertex);
+        var result = CanPlaceSettlement(owner, vertex, ignoreRoadRequirement);
         if (result != SettlementPlacementResult.Success)
             throw new InvalidOperationException(result.ToString());
 
@@ -345,13 +353,16 @@ public class Board
         return settlement;
     }
 
-    public SettlementPlacementResult CanPlaceSettlement(Player player, Vertex vertex)
+    public SettlementPlacementResult CanPlaceSettlement(Player player, Vertex vertex, bool ignoreRoadRequirement)
     {
         if (vertex.IsSettlement || vertex.IsCity)
             return SettlementPlacementResult.VertexOccupied;
 
         if (UnbuildableVertices.Contains(vertex))
             return SettlementPlacementResult.VertexUnbuildable;
+
+        if (ignoreRoadRequirement)
+            return SettlementPlacementResult.Success;
 
         bool isConnected = BoardMappings.VertexToEdgeMapping[vertex.Index]
             .Select(i => Edges[i])
@@ -361,6 +372,7 @@ public class Board
             ? SettlementPlacementResult.Success
             : SettlementPlacementResult.NotConnected;
     }
+
 
     private void MarkAdjacentVerticesUnbuildable(Vertex vertex)
     {
@@ -430,7 +442,4 @@ public class Board
 
         return playerCounts.Select(kv => (kv.Key, kv.Value)).ToList();
     }
-
-
-
 }

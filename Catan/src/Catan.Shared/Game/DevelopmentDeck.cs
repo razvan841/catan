@@ -15,7 +15,6 @@ public class DevelopmentDeck
     {
         var cards = new List<DevelopmentCard>();
 
-        // Standard Catan distribution
         Add(cards, DevelopmentCardType.Knight, 14);
         Add(cards, DevelopmentCardType.VictoryPoint, 5);
         Add(cards, DevelopmentCardType.RoadBuilding, 2);

@@ -42,7 +42,9 @@ namespace Catan.Shared.Game
             NotEnoughDiscardedCards,
             UnplayableDevelopmentCardType,
             NoDevelopmentCardType,
-            AlreadyPlayedDevelopmentCard
+            AlreadyPlayedDevelopmentCard,
+            DevelopmentCardBoughtThisTurn,
+            DevelopmentCardAlreadyPlayed
         }
 
         internal static class Costs
@@ -90,6 +92,10 @@ namespace Catan.Shared.Game
         public bool PlayedDevelopmentCardThisTurn = false;
         public Player? LongestRoadOwner { get; private set; }
         public Player? LargestArmyOwner { get; private set; }
+        public int TurnNumber { get; private set; } = 0;
+        public Player? Winner { get; private set; }
+        public IReadOnlyList<Player>? FinalStandings { get; private set; }
+        public DateTime? EndedAt { get; private set; }
 
         // =========================
         // Construction
@@ -117,14 +123,21 @@ namespace Catan.Shared.Game
             Phase = GamePhase.SetupRound1;
         }
 
-        public void EndGame() { }
-
-        public void HandleEndGame(Player winner)
+        private void HandleEndGame(Player winner)
         {
-            Phase = GamePhase.EndGame;
-            EndGame();
-        }
+            if (Phase == GamePhase.EndGame)
+                return;
 
+            Winner = winner;
+            Phase = GamePhase.EndGame;
+            EndedAt = DateTime.UtcNow;
+
+            FinalStandings = Players
+                .OrderByDescending(p => p.VictoryPoints)
+                .ThenByDescending(p => p.Resources.Values.Sum())
+                .ToList()
+                .AsReadOnly();
+        }
         // =========================
         // Turn Helpers
         // =========================
@@ -134,9 +147,12 @@ namespace Catan.Shared.Game
         public void NextTurn()
         {
             CurrentPlayerIndex = (CurrentPlayerIndex + 1) % Players.Count;
+            TurnNumber++;
+            Turn = TurnPhase.Roll;
+            PlayedDevelopmentCardThisTurn = false;
         }
 
-        private void AdvanceSetupTurn()
+        public void AdvanceSetupTurn()
         {
             if (Phase == GamePhase.SetupRound1)
             {
@@ -165,6 +181,14 @@ namespace Catan.Shared.Game
                 (Players[i], Players[j]) = (Players[j], Players[i]);
             }
         }
+        private void CheckVictory(Player player)
+        {
+            if (player.VictoryPoints >= Rules.VictoryPointsToWin)
+            {
+                HandleEndGame(player);
+            }
+        }
+
 
         // =========================
         // Setup Phase Actions
@@ -181,7 +205,7 @@ namespace Catan.Shared.Game
             Settlement settlement;
             try
             {
-                settlement = Board.BuildSettlement(player, vertex);
+                settlement = Board.BuildSettlement(player, vertex, true);
             }
             catch
             {
@@ -191,6 +215,7 @@ namespace Catan.Shared.Game
             player.Settlements.Add(settlement);
             if (vertex.Port != null && !player.Ports.Contains(vertex.Port.Type))
                 player.Ports.Add(vertex.Port.Type);
+            vertex.Owner = player;
             return ActionResult.Success;
         }
 
@@ -256,6 +281,8 @@ namespace Catan.Shared.Game
             player.Roads.Add(road);
             Turn = TurnPhase.Build;
             UpdateLongestRoad(player);
+            if (LongestRoadOwner == player)
+                CheckVictory(player);
             return ActionResult.Success;
         }
 
@@ -273,7 +300,7 @@ namespace Catan.Shared.Game
             Settlement settlement;
             try
             {
-                settlement = Board.BuildSettlement(player, vertex);
+                settlement = Board.BuildSettlement(player, vertex, false);
             }
             catch
             {
@@ -283,7 +310,9 @@ namespace Catan.Shared.Game
                 player.Ports.Add(vertex.Port.Type);
             player.Pay(Costs.Settlement);
             player.Settlements.Add(settlement);
+            vertex.Owner = player;
             Turn = TurnPhase.Build;
+            CheckVictory(player);
             return ActionResult.Success;
         }
 
@@ -312,6 +341,7 @@ namespace Catan.Shared.Game
             player.Settlements.Remove(settlement);
             player.Cities.Add(city);
             Turn = TurnPhase.Build;
+            CheckVictory(player);
             return ActionResult.Success;
         }
 
@@ -331,7 +361,10 @@ namespace Catan.Shared.Game
                 return ActionResult.NoCardsLeft;
 
             player.Pay(Costs.DevelopmentCard);
+            card.BoughtOnTurn = TurnNumber;
             player.DevelopmentCards.Add(card);
+            if (card.Type == DevelopmentCardType.VictoryPoint)
+                CheckVictory(player);
             Turn = TurnPhase.Build;
             return ActionResult.Success;
         }
@@ -355,7 +388,7 @@ namespace Catan.Shared.Game
 
             return ActionResult.Success;
         }
-        public ActionResult PlayKnightCard(Player player, HexTile tile)
+        public ActionResult PlayKnightCard(Player player)
         {
             if (Phase != GamePhase.MainGame)
                 return ActionResult.WrongPhase;
@@ -370,7 +403,17 @@ namespace Catan.Shared.Game
             if (card == null)
                 return ActionResult.NoDevelopmentCardType;
 
+            if (card.BoughtOnTurn == TurnNumber)
+                return ActionResult.DevelopmentCardBoughtThisTurn;
+
+            if (card.Played)
+                return ActionResult.DevelopmentCardAlreadyPlayed;
+
             player.DevelopmentCards.Remove(card);
+            player.KnightsPlayed += 1;
+            UpdateLargestArmy(player);
+            if (LargestArmyOwner == player)
+                CheckVictory(player);
 
             PlayedDevelopmentCardThisTurn = true;
             return ActionResult.Success;
@@ -389,6 +432,12 @@ namespace Catan.Shared.Game
             var card = player.DevelopmentCards.FirstOrDefault(c => c.Type == DevelopmentCardType.RoadBuilding);
             if (card == null)
                 return ActionResult.NoDevelopmentCardType;
+
+            if (card.BoughtOnTurn == TurnNumber)
+                return ActionResult.DevelopmentCardBoughtThisTurn;
+
+            if (card.Played)
+                return ActionResult.DevelopmentCardAlreadyPlayed;
 
             player.DevelopmentCards.Remove(card);
 
@@ -416,6 +465,12 @@ namespace Catan.Shared.Game
             var card = player.DevelopmentCards.FirstOrDefault(c => c.Type == DevelopmentCardType.Monopoly);
             if (card == null)
                 return ActionResult.NoDevelopmentCardType;
+
+            if (card.BoughtOnTurn == TurnNumber)
+                return ActionResult.DevelopmentCardBoughtThisTurn;
+            
+            if (card.Played)
+                return ActionResult.DevelopmentCardAlreadyPlayed;
 
             player.DevelopmentCards.Remove(card);
             foreach (var target in Players)
@@ -447,6 +502,12 @@ namespace Catan.Shared.Game
             var card = player.DevelopmentCards.FirstOrDefault(c => c.Type == DevelopmentCardType.YearOfPlenty);
             if (card == null)
                 return ActionResult.NoDevelopmentCardType;
+
+            if (card.BoughtOnTurn == TurnNumber)
+                return ActionResult.DevelopmentCardBoughtThisTurn;
+
+            if (card.Played)
+                return ActionResult.DevelopmentCardAlreadyPlayed;
 
             player.DevelopmentCards.Remove(card);
 
@@ -631,6 +692,8 @@ namespace Catan.Shared.Game
             {
                 DistributeResources(dice);  
             }
+            Turn = TurnPhase.Trade;
+
             
         }
 
@@ -678,9 +741,109 @@ namespace Catan.Shared.Game
         // Achievements
         // =========================
 
-        private void UpdateLongestRoad(Player triggeringPlayer)
+        private void UpdateLongestRoad(Player player)
         {
-            // TODO: DFS-based longest road calculation
+            int length = CalculateLongestRoad(player);
+
+            if (length < 5)
+                return;
+
+            if (LongestRoadOwner == null || length > LongestRoadOwner.LongestRoad)
+            {
+                if (LongestRoadOwner != null)
+                    LongestRoadOwner.LongestRoadOwner = false;
+
+                LongestRoadOwner = player;
+                player.LongestRoadOwner = true;
+                player.LongestRoad = length;
+            }
         }
+        private void UpdateLargestArmy(Player player)
+        {
+            if (player.KnightsPlayed < 3)
+                return;
+
+            if (LargestArmyOwner == null ||
+                player.KnightsPlayed > LargestArmyOwner.KnightsPlayed)
+            {
+                if (LargestArmyOwner != null)
+                    LargestArmyOwner.LargestArmyOwner = false;
+
+                LargestArmyOwner = player;
+                player.LargestArmyOwner = true;
+            }
+        }
+
+        private Dictionary<Vertex, List<Vertex>> BuildRoadGraph(Player player)
+        {
+            var graph = new Dictionary<Vertex, List<Vertex>>();
+
+            foreach (var road in Board.Roads.Where(r => r.Owner == player))
+            {
+                var a = road.Edge.VertexA;
+                var b = road.Edge.VertexB;
+
+                graph.TryAdd(a, new List<Vertex>());
+                graph.TryAdd(b, new List<Vertex>());
+
+                graph[a].Add(b);
+                graph[b].Add(a);
+            }
+
+            return graph;
+        }
+
+        private bool IsBlocked(Vertex vertex, Player player)
+        {
+            return Board.Settlements.Any(s => s.Vertex == vertex && s.Owner != player)
+                || Board.Cities.Any(c => c.Vertex == vertex && c.Owner != player);
+        }
+
+        private int DFSLongestPath(
+            Vertex current,
+            Dictionary<Vertex, List<Vertex>> graph,
+            HashSet<(Vertex, Vertex)> usedEdges,
+            Player player)
+        {
+            int max = 0;
+
+            foreach (var next in graph[current])
+            {
+                var edgeKey = (current, next);
+                var reverseKey = (next, current);
+
+                if (usedEdges.Contains(edgeKey) || usedEdges.Contains(reverseKey))
+                    continue;
+
+                if (IsBlocked(next, player))
+                    continue;
+
+                usedEdges.Add(edgeKey);
+                usedEdges.Add(reverseKey);
+
+                int length = 1 + DFSLongestPath(next, graph, usedEdges, player);
+                max = Math.Max(max, length);
+
+                usedEdges.Remove(edgeKey);
+                usedEdges.Remove(reverseKey);
+            }
+
+            return max;
+        }
+
+        private int CalculateLongestRoad(Player player)
+        {
+            var graph = BuildRoadGraph(player);
+            int longest = 0;
+
+            foreach (var vertex in graph.Keys)
+            {
+                var usedEdges = new HashSet<(Vertex, Vertex)>();
+                longest = Math.Max(longest, DFSLongestPath(vertex, graph, usedEdges, player));
+            }
+
+            return longest;
+        }
+
     }
 }

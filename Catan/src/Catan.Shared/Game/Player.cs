@@ -19,6 +19,7 @@ public class Player
     public List<PortType> Ports { get; init; } = new();
     public List<DevelopmentCard> DevelopmentCards { get; init; } = new();
     public int KnightsPlayed { get; set; }
+    public int LongestRoad { get; set; }
     public bool LongestRoadOwner { get; set; }
     public bool LargestArmyOwner { get; set; }
 
@@ -34,16 +35,16 @@ public class Player
     }
 
 
-    internal bool CanAfford(Dictionary<ResourceType, int> cost) =>
+    public bool CanAfford(Dictionary<ResourceType, int> cost) =>
         cost.All(kv => Resources[kv.Key] >= kv.Value);
 
-    internal void Pay(Dictionary<ResourceType, int> cost)
+    public void Pay(Dictionary<ResourceType, int> cost)
     {
         foreach (var kv in cost)
             Resources[kv.Key] -= kv.Value;
     }
 
-    internal void Receive(Dictionary<ResourceType, int> resources)
+    public void Receive(Dictionary<ResourceType, int> resources)
     {
         foreach (var kv in resources)
             Resources[kv.Key] += kv.Value;
