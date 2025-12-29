@@ -45,7 +45,6 @@ public partial class MainWindow : Window
 
     private void DefineBoardPositions()
     {
-        double hexSize = 60;
         double startY = 150;
         int[] rowCountsTiles = { 3, 4, 5, 4, 3 };
         int[] rowCountsVertices = { 3, 4, 4, 5, 5, 6, 6, 5, 5, 4, 4, 3 };
@@ -145,16 +144,20 @@ public partial class MainWindow : Window
                     Padding = new Thickness(6),
                     Child = new TextBlock
                     {
-                        Text = tile.NumberToken.ToString(),
+                        Text = tile.Resource != null 
+                            ? $"{tile.NumberToken} \n {tile.Resource}"
+                            : tile.NumberToken.ToString(),
                         FontWeight = FontWeights.Bold,
                         Foreground = (tile.NumberToken == 6 || tile.NumberToken == 8)
                             ? Brushes.Red
-                            : Brushes.Black
+                            : Brushes.Black,
+                        TextAlignment = TextAlignment.Center
                     }
+
                 };
 
-                Canvas.SetLeft(token, center.X - 16);
-                Canvas.SetTop(token, center.Y - 16);
+                Canvas.SetLeft(token, center.X - 25);
+                Canvas.SetTop(token, center.Y - 25);
                 BoardCanvas.Children.Add(token);
             }
 
@@ -228,36 +231,34 @@ public partial class MainWindow : Window
                 Stroke = Brushes.Black
             };
 
-            circle.MouseLeftButtonDown += (_, _) =>
-            {
-                ActionResult result;
-
-                if (_game.Phase == GameSession.GamePhase.SetupRound1 ||
-                    _game.Phase == GameSession.GamePhase.SetupRound2)
-                {
-                    result = _game.BuildInitialSettlement(_game.GetCurrentPlayer(), vertex);
-                }
-                else
-                {
-                    result = _game.BuildSettlement(_game.GetCurrentPlayer(), vertex);
-                }
-
-                Console.WriteLine(result);
-                DrawBoard();
-            };
-
             Canvas.SetLeft(circle, pos.X - 5);
             Canvas.SetTop(circle, pos.Y - 5);
             BoardCanvas.Children.Add(circle);
         }
     }
+    private void RollDiceButton_Click(object sender, RoutedEventArgs e)
+    {
+        _game.RollDice();
+        DrawBoard();
+    }
 
+    private void FinishTurnButton_Click(object sender, RoutedEventArgs e)
+    {
+        _game.NextTurn();
+        DrawBoard();
+    }
+
+    private void ReshuffleButton_Click(object sender, RoutedEventArgs e)
+    {
+        _game.Board.ReshuffleBoard();
+        DrawBoard();
+    }
     private void DrawPorts()
     {
         foreach (var port in _game.Board.Ports)
         {
             var pos = _vertexPositions[port.Vertex];
-
+            Console.WriteLine($"{port.Vertex.Index} -- {port.Type}");
             var marker = new Ellipse
             {
                 Width = 14,
@@ -266,10 +267,67 @@ public partial class MainWindow : Window
                 Stroke = Brushes.Black,
                 StrokeThickness = 2
             };
-
             Canvas.SetLeft(marker, pos.X - 7);
             Canvas.SetTop(marker, pos.Y - 7);
             BoardCanvas.Children.Add(marker);
+
+            string textString = port.Type == PortType.Generic 
+                ? "3:1"
+                : $"2:1 {port.Type}";
+
+            var text = new TextBlock
+            {
+                Text = textString,
+                FontSize = 10,
+                FontWeight = FontWeights.Bold,
+                Foreground = Brushes.Black,
+                TextAlignment = TextAlignment.Center
+            };
+            switch(port.Vertex.Index)
+            {
+                case 1:
+                case 2:
+                case 4:
+                    Canvas.SetLeft(text, pos.X - 5);
+                    Canvas.SetTop(text, pos.Y - 20);
+                    break;
+                case 7:
+                    Canvas.SetLeft(text, pos.X - 60);
+                    Canvas.SetTop(text, pos.Y - 10);
+                    break;
+                case 27:
+                    Canvas.SetLeft(text, pos.X - 20);
+                    Canvas.SetTop(text, pos.Y + 10);
+                    break;
+                case 11:
+                case 38:
+                    Canvas.SetLeft(text, pos.X - 50);
+                    Canvas.SetTop(text, pos.Y);
+                    break;
+                case 20:
+                    Canvas.SetLeft(text, pos.X + 15);
+                    Canvas.SetTop(text, pos.Y - 10);
+                    break;
+                case 21:
+                    Canvas.SetLeft(text, pos.X - 25);
+                    Canvas.SetTop(text, pos.Y - 10);
+                    break;
+                case 43:
+                    Canvas.SetLeft(text, pos.X - 60);
+                    Canvas.SetTop(text, pos.Y);
+                    break;
+                case 48:
+                    Canvas.SetLeft(text, pos.X - 25);
+                    Canvas.SetTop(text, pos.Y + 15);
+                    break;
+                default:
+                    Canvas.SetLeft(text, pos.X + 5);
+                    Canvas.SetTop(text, pos.Y + 5);
+                    break;
+            }
+
+            BoardCanvas.Children.Add(text);
+
         }
     }
 
@@ -331,7 +389,7 @@ public partial class MainWindow : Window
         });
     }
 
-    private void HandleCommand(string? cmd)
+    private void HandleCommand(string cmd)
     {
         if (cmd == null) return;
 
