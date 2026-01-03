@@ -1,8 +1,12 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
 using Avalonia.Threading;
+using Avalonia.Media;
 using System;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Catan.Client.Networking;
@@ -22,10 +26,16 @@ public enum ClientUiState
 
 public partial class MainWindow : Window
 {
+    // ========================
+    // FIELDS
+    // ========================
     private TcpClientConnection? _connection;
     private ClientUiState _uiState = ClientUiState.Connecting;
     private readonly ClientState _state = new();
 
+    // ========================
+    // CONSTRUCTOR
+    // ========================
     public MainWindow()
     {
         InitializeComponent();
@@ -36,7 +46,6 @@ public partial class MainWindow : Window
     // ========================
     // CONNECTION LOGIC
     // ========================
-
     private async Task TryConnectAsync()
     {
         try
@@ -85,20 +94,31 @@ public partial class MainWindow : Window
         }
     }
 
+    private async Task SendAsync(ClientMessage msg)
+    {
+        if (_connection != null)
+            await _connection.SendAsync(msg);
+    }
+
     // ========================
     // AUTH LOGIC
     // ========================
-
     private async void Login_Click(object? sender, RoutedEventArgs e)
     {
         if (_connection == null) return;
 
-        var username = UsernameBox.Text;
-        var password = PasswordBox.Text;
+        var username = UsernameBox.Text?.Trim();
+        var password = PasswordBox.Text?.Trim();
+
+        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+        {
+            ShowErrorPopup("Error", "Username and password cannot be empty.");
+            return;
+        }
 
         _state.Username = username;
 
-        await _connection.SendAsync(new ClientMessage
+        await SendAsync(new ClientMessage
         {
             Type = MessageType.LoginRequest,
             Payload = new LoginRequestDto
@@ -113,12 +133,18 @@ public partial class MainWindow : Window
     {
         if (_connection == null) return;
 
-        var username = UsernameBox.Text;
-        var password = PasswordBox.Text;
+        var username = UsernameBox.Text?.Trim();
+        var password = PasswordBox.Text?.Trim();
+
+        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+        {
+            ShowErrorPopup("Error", "Username and password cannot be empty.");
+            return;
+        }
 
         _state.Username = username;
 
-        await _connection.SendAsync(new ClientMessage
+        await SendAsync(new ClientMessage
         {
             Type = MessageType.RegisterRequest,
             Payload = new RegisterRequestDto
@@ -132,12 +158,11 @@ public partial class MainWindow : Window
     // ========================
     // LOBBY ACTIONS
     // ========================
-
     private async void Queue_Click(object? sender, RoutedEventArgs e)
     {
         if (_connection == null) return;
 
-        await _connection.SendAsync(new ClientMessage
+        await SendAsync(new ClientMessage
         {
             Type = MessageType.QueueRequest
         });
@@ -147,7 +172,7 @@ public partial class MainWindow : Window
     {
         if (_connection == null) return;
 
-        await _connection.SendAsync(new ClientMessage
+        await SendAsync(new ClientMessage
         {
             Type = MessageType.HealthRequest
         });
@@ -156,7 +181,6 @@ public partial class MainWindow : Window
     // ========================
     // TERMINAL INPUT
     // ========================
-
     private async void CommandBox_KeyDown(object? sender, KeyEventArgs e)
     {
         if (e.Key != Key.Enter) return;
@@ -166,64 +190,95 @@ public partial class MainWindow : Window
 
         if (string.IsNullOrEmpty(text)) return;
 
-        if (text.StartsWith("/"))
+        await SendTerminalMessage(text);
+    }
+
+    private async Task SendTerminalMessage(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return;
+
+        if (input.StartsWith("/"))
         {
-            HandleCommand(text[1..]);
+            var parts = input.Substring(1).Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 0) return;
+
+            var command = parts[0].ToLower();
+            var args = parts.Skip(1).ToArray();
+
+            await HandleCommandAsync(command, args);
         }
         else
         {
-            if (_connection != null)
-            {
-                await _connection.SendAsync(new ClientMessage
+            await SendChatMessageAsync(input);
+        }
+
+        CommandBox.Text = "";
+    }
+
+    private async Task HandleCommandAsync(string command, string[] args)
+    {
+        switch (command)
+        {
+            case "help":
+                Log("Commands: /help, /ping, /queue");
+                break;
+
+            case "ping":
+            case "pulse":
+                await SendAsync(new ClientMessage { Type = MessageType.HealthRequest });
+                break;
+
+            case "queue":
+                await SendAsync(new ClientMessage
                 {
-                    Type = MessageType.ChatMessage,
-                    Payload = text
+                    Type = MessageType.QueueRequest,
+                    Payload = new QueueRequestDto { Username = _state.Username! }
                 });
-            }
+                break;
+
+            default:
+                MessagesBox.Text += $"Unknown command: {command}{Environment.NewLine}";
+                MessagesBox.CaretIndex = MessagesBox.Text.Length;
+                break;
         }
     }
 
-    private void HandleCommand(string input)
+    private async Task SendChatMessageAsync(string text)
     {
-        var parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        var cmd = parts[0].ToLowerInvariant();
+        MessagesBox.Text += $"You: {text}{Environment.NewLine}";
+        MessagesBox.CaretIndex = MessagesBox.Text.Length;
 
-        switch (cmd)
+        if (_connection != null)
         {
-            case "help":
-                Log("Commands: /help, /ping, /quit");
-                break;
-            case "ping":
-                Pulse_Click(null, null);
-                break;
-            default:
-                Log($"Unknown command: {cmd}");
-                break;
+            await SendAsync(new ClientMessage
+            {
+                Type = MessageType.ChatMessage,
+                Payload = text
+            });
         }
     }
 
     // ========================
     // SERVER MESSAGE HANDLING
     // ========================
-
     private void HandleServerMessage(ServerMessage msg)
     {
         switch (msg.Type)
         {
             case MessageType.LoginResponse:
+                HandleLoginResponse(msg);
+                break;
+
             case MessageType.RegisterResponse:
-                _uiState = ClientUiState.InLobby;
-                UpdateUi();
+                HandleRegisterResponse(msg);
                 break;
 
             case MessageType.ServerChat:
-                MessagesBox.Text += msg.Payload + Environment.NewLine;
-                MessagesBox.CaretIndex = MessagesBox.Text.Length;
+                HandleServerChat(msg);
                 break;
 
             case MessageType.HealthResponse:
-                MessagesBox.Text += msg.Payload + Environment.NewLine;
-                MessagesBox.CaretIndex = MessagesBox.Text.Length;
+                HandleHealthResponse(msg);
                 break;
 
             default:
@@ -232,10 +287,63 @@ public partial class MainWindow : Window
         }
     }
 
+    private void HandleLoginResponse(ServerMessage msg)
+    {
+        var payload = ((JsonElement)msg.Payload!).Deserialize<LoginResponseDto>()!;
+        if (payload.Success)
+        {
+            _uiState = ClientUiState.InLobby;
+            UpdateUi();
+            Log("Login successful.");
+        }
+        else
+        {
+            _uiState = ClientUiState.Auth;
+            UpdateUi();
+            Log($"Login failed: {payload.Message}");
+            ShowErrorPopup("Login Failed", payload.Message);
+        }
+    }
+
+    private void HandleRegisterResponse(ServerMessage msg)
+    {
+        var payload = ((JsonElement)msg.Payload!).Deserialize<RegisterResponseDto>()!;
+        if (payload.Success)
+        {
+            _uiState = ClientUiState.InLobby;
+            UpdateUi();
+            Log("Registration successful.");
+        }
+        else
+        {
+            _uiState = ClientUiState.Auth;
+            UpdateUi();
+            Log($"Registration failed: {payload.Message}");
+            ShowErrorPopup("Registration Failed", payload.Message);
+        }
+    }
+
+    private void HandleServerChat(ServerMessage msg)
+    {
+        if (_uiState != ClientUiState.InLobby) return;
+
+        var text = msg.Payload?.ToString() ?? "";
+        MessagesBox.Text += text + Environment.NewLine;
+        MessagesBox.CaretIndex = MessagesBox.Text.Length;
+    }
+
+    private void HandleHealthResponse(ServerMessage msg)
+    {
+        if (_uiState != ClientUiState.InLobby) return;
+
+        var payload = ((JsonElement)msg.Payload!).Deserialize<HealthResponseDto>()!;
+        MessagesBox.Text += $"Health check: {(payload.Success ? "OK" : "FAIL")} at {payload.ServerTime}" + Environment.NewLine;
+        MessagesBox.CaretIndex = MessagesBox.Text.Length;
+    }
+
     // ========================
     // UI HELPERS
     // ========================
-
     private void UpdateUi()
     {
         DisconnectedPanel.IsVisible = _uiState == ClientUiState.Disconnected;
@@ -247,5 +355,39 @@ public partial class MainWindow : Window
     {
         LogBox.Text += text + Environment.NewLine;
         LogBox.CaretIndex = LogBox.Text.Length;
+    }
+
+    private async void ShowErrorPopup(string title, string message)
+    {
+        var window = new Window
+        {
+            Title = title,
+            Width = 300,
+            Height = 150,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner
+        };
+
+        var stack = new StackPanel { Margin = new Thickness(10) };
+
+        var textBlock = new TextBlock
+        {
+            Text = message,
+            TextWrapping = TextWrapping.Wrap
+        };
+
+        var okButton = new Button
+        {
+            Content = "OK",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            Margin = new Thickness(0, 10, 0, 0)
+        };
+        okButton.Click += (_, __) => window.Close();
+
+        stack.Children.Add(textBlock);
+        stack.Children.Add(okButton);
+
+        window.Content = stack;
+
+        await window.ShowDialog(this);
     }
 }

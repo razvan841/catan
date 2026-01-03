@@ -8,6 +8,6 @@ namespace Catan.Shared.Networking.Dtos
     public class HealthResponseDto
     {
         public bool Success { get; set; }
-        public DateTime utcNow { get; set; }
+        public DateTime ServerTime  { get; set; }
     }
 }

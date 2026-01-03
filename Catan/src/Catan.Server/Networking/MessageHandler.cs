@@ -50,7 +50,7 @@ public static class MessageHandler
         var response = new ServerMessage
         {
             Type = MessageType.HealthResponse,
-            Payload = new HealthResponseDto { Success = true, utcNow = DateTime.UtcNow }
+            Payload = new HealthResponseDto { Success = true, ServerTime = DateTime.UtcNow }
         };
         var data = JsonMessageSerializer.Serialize(response);
         await session.Stream.WriteAsync(data);
