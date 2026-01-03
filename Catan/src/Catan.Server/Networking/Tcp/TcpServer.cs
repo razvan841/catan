@@ -26,9 +26,8 @@ public class TcpServer
         {
             var client = await _listener.AcceptTcpClientAsync();
             var session = new ClientSession(client);
-            SessionManager.Add(session);
 
-            Console.WriteLine("New client connected.");
+            Console.WriteLine($"New client {session.Id} connected.");
 
             _ = HandleClientAsync(session);
         }
@@ -58,14 +57,14 @@ public class TcpServer
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error with client {session.Username ?? session.Id.ToString()}: {ex.Message}");
+            Console.WriteLine($"Error with client {session.Id ?? session.Username ?? "Unknown"}: {ex.Message}");
         }
         finally
         {
             session.State = SessionState.Disconnected;
             SessionManager.Remove(session);
             client.Close();
-            Console.WriteLine($"User '{session.Username ?? session.Id.ToString()}' disconnected.");
+            Console.WriteLine($"User '{session.Id ?? session.Username ?? "Unknown"}' disconnected.");
         }
     }
 

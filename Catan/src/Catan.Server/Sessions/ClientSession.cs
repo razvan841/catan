@@ -5,7 +5,7 @@ namespace Catan.Server.Sessions;
 
 public class ClientSession
 {
-    public Guid Id { get; } = Guid.NewGuid();
+    public string Id { get; private set; } = Guid.NewGuid().ToString();
     public TcpClient Client { get; }
     public NetworkStream Stream { get; }
     public string? Username { get; private set; }
@@ -16,11 +16,17 @@ public class ClientSession
     {
         Client = client;
         Stream = client.GetStream();
+        SessionManager.Add(this);
     }
 
-    public void Register(string username)
+    public void Register(string dbUserId, string username)
     {
+        SessionManager.Remove(this);
+
+        Id = dbUserId;
         Username = username;
         State = SessionState.Registered;
+
+        SessionManager.Add(this);
     }
 }

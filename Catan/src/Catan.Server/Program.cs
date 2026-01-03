@@ -1,4 +1,17 @@
-﻿using Catan.Server.Networking.Tcp;
+﻿using System;
+using System.Threading.Tasks;
+using Catan.Server;
+using Catan.Server.Networking.Tcp;
 
-var server = new TcpServer(port: 5000);
-await server.StartAsync();
+class Program
+{
+    static async Task Main()
+    {
+        Db.Initialize();
+
+        Console.WriteLine("Database initialized! Starting TCP server...");
+
+        var server = new TcpServer(5000);
+        await server.StartAsync();
+    }
+}

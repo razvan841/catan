@@ -74,9 +74,9 @@ public static class MessageHandler
             return;
         }
 
-        Db.AddUser(dto.Username, dto.Password);
-        session.Register(dto.Username);
-        SessionManager.Add(session);
+        Console.WriteLine("Adding user to DB!");
+        var userId = Db.AddUser(dto.Username, dto.Password);
+        session.Register(userId, dto.Username);
 
         await SendResponseAsync(session, new ServerMessage
         {
@@ -107,10 +107,8 @@ public static class MessageHandler
             return;
         }
 
-        session.Register(dto.Username);
-        SessionManager.Add(session);
-
-        
+        var userId = Db.GetUserId(dto.Username)!;
+        session.Register(userId, dto.Username);        
         await SendResponseAsync(session, new ServerMessage
         {
             Type = MessageType.LoginResponse,
