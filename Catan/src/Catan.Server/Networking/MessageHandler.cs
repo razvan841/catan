@@ -38,6 +38,18 @@ public static class MessageHandler
             case MessageType.MatchResponse:
                 HandleMatchResponse(clientMessage, session);
                 break;
+            
+            case MessageType.EloRequest:
+                await HandleEloAsync(clientMessage, session);
+                break;
+
+            case MessageType.LeaderboardRequest:
+                await HandleLeaderboardAsync(clientMessage, session);
+                break;
+
+            case MessageType.PlayerInfoRequest:
+                await HandlePlayerInfoAsync(clientMessage, session);
+                break;
 
             default:
                 Console.WriteLine($"Unknown message type: {clientMessage.Type}");
@@ -142,6 +154,58 @@ public static class MessageHandler
         Matchmaking.MatchmakingService.HandleMatchResponse(session, dto);
     }
 
+    private static async Task HandleEloAsync(ClientMessage message, ClientSession session)
+    {
+        var dto = ((JsonElement)message.Payload!).Deserialize<EloRequestDto>()!;
+        var result = new List<EloResponseEntryDto>();
+
+        foreach (var username in dto.Usernames)
+        {
+            var elo = Db.GetEloByUsername(username);
+            if (elo.HasValue)
+                result.Add(new EloResponseEntryDto { Username = username, Elo = elo.Value });
+        }
+
+        await SendResponseAsync(session, new ServerMessage
+        {
+            Type = MessageType.EloResponse,
+            Payload = new EloResponseDto { Entries = result.ToArray() }
+        });
+    }
+
+    private static async Task HandleLeaderboardAsync(ClientMessage message, ClientSession session)
+    {
+        var topPlayers = Db.GetLeaderboard(10);
+        await SendResponseAsync(session, new ServerMessage
+        {
+            Type = MessageType.LeaderboardResponse,
+            Payload = new LeaderboardResponseDto
+            {
+                Entries = topPlayers.Select(p => new LeaderboardEntryDto
+                {
+                    Username = p.Username,
+                    Elo = p.Elo
+                }).ToArray()
+            }
+        });
+        
+    }
+
+    public static async Task HandlePlayerInfoAsync(ClientMessage message, ClientSession session)
+    {
+        var dto = ((JsonElement)message.Payload!).Deserialize<PlayerInfoRequestDto>()!;
+        var username = dto.Username;
+
+        var info = Db.GetUserInfoByUsername(username);
+
+        var response = new ServerMessage
+        {
+            Type = MessageType.PlayerInfoResponse,
+            Payload = info
+        };
+
+        await SendResponseAsync(session, response);
+    }
     private static async Task SendResponseAsync(ClientSession session, ServerMessage msg)
     {
         var data = JsonMessageSerializer.Serialize(msg);

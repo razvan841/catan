@@ -220,7 +220,12 @@ public partial class MainWindow : Window
         switch (command)
         {
             case "help":
-                Log("Commands: /help, /ping, /queue");
+                ShowHelp(args);
+                break;
+
+            case "clear":
+                MessagesBox.Text = "";
+                MessagesBox.CaretIndex = 0;
                 break;
 
             case "ping":
@@ -235,11 +240,90 @@ public partial class MainWindow : Window
                     Payload = new QueueRequestDto { Username = _state.Username! }
                 });
                 break;
+            
+            case "elo":
+                if (args.Length == 0)
+                {
+                    // If no args, show own Elo
+                    await SendAsync(new ClientMessage
+                    {
+                        Type = MessageType.EloRequest,
+                        Payload = new EloRequestDto { Usernames = new[] { _state.Username! } }
+                    });
+                }
+                else
+                {
+                    await SendAsync(new ClientMessage
+                    {
+                        Type = MessageType.EloRequest,
+                        Payload = new EloRequestDto { Usernames = args }
+                    });
+                }
+                break;
+
+            case "playerinfo":
+                if (args.Length != 1)
+                {
+                    MessagesBox.Text += $"Usage: /playerinfo <username>{Environment.NewLine}";
+                    MessagesBox.CaretIndex = MessagesBox.Text.Length;
+                    break;
+                }
+
+                await SendAsync(new ClientMessage
+                {
+                    Type = MessageType.PlayerInfoRequest,
+                    Payload = new PlayerInfoRequestDto { Username = args[0] }
+                });
+                break;
+
+            case "leaderboard":
+                await SendAsync(new ClientMessage
+                        {
+                            Type = MessageType.LeaderboardRequest
+                        });
+                        break;
 
             default:
                 MessagesBox.Text += $"Unknown command: {command}{Environment.NewLine}";
                 MessagesBox.CaretIndex = MessagesBox.Text.Length;
                 break;
+        }
+    }
+
+    private void ShowHelp(string[] args)
+    {
+        if (args.Length == 0)
+        {
+            Log("Commands: /help, /ping, /queue, /elo, /leaderboard, /playerinfo, /clear");
+        }
+        else
+        {
+            var cmdHelp = args[0].ToLower();
+            switch (cmdHelp)
+            {
+                case "ping":
+                case "pulse":
+                    Log("/ping or /pulse - Checks server connectivity and health.");
+                    break;
+                case "queue":
+                    Log("/queue - Joins the matchmaking queue.");
+                    break;
+                case "elo":
+                    Log("/elo [username1 username2 ...] - Shows Elo rating for given usernames. No args = shows your Elo.");
+                    break;
+                case "leaderboard":
+                    Log("/leaderboard - Shows the top players by Elo.");
+                    break;
+                case "playerinfo":
+                    Log("/playerinfo <username> - Shows detailed info about a player.");
+                    break;
+                case "clear":
+                    Log("/clear - Clears the chat/terminal area.");
+                    break;
+                default:
+                    Log($"No help available for '{cmdHelp}'.");
+                    break;
+            }
         }
     }
 
@@ -279,6 +363,18 @@ public partial class MainWindow : Window
 
             case MessageType.HealthResponse:
                 HandleHealthResponse(msg);
+                break;
+
+            case MessageType.EloResponse:
+                HandleEloResponse(msg);
+                break;
+
+            case MessageType.LeaderboardResponse:
+                HandleLeaderboardResponse(msg);
+                break;
+
+            case MessageType.PlayerInfoResponse:
+                HandlePlayerInfoResponse(msg);
                 break;
 
             default:
@@ -340,6 +436,68 @@ public partial class MainWindow : Window
         MessagesBox.Text += $"Health check: {(payload.Success ? "OK" : "FAIL")} at {payload.ServerTime}" + Environment.NewLine;
         MessagesBox.CaretIndex = MessagesBox.Text.Length;
     }
+
+    private void HandleEloResponse(ServerMessage msg)
+    {
+        if (_uiState != ClientUiState.InLobby) return;
+
+        var payload = ((JsonElement)msg.Payload!).Deserialize<EloResponseDto>()!;
+
+        if (payload.Entries.Length == 0)
+        {
+            MessagesBox.Text += "No Elo data returned." + Environment.NewLine;
+        }
+        else
+        {
+            MessagesBox.Text += "Elo Scores:" + Environment.NewLine;
+            foreach (var player in payload.Entries)
+            {
+                MessagesBox.Text += $"{player.Username}: {player.Elo}" + Environment.NewLine;
+            }
+        }
+
+        MessagesBox.CaretIndex = MessagesBox.Text.Length;
+    }
+    private void HandleLeaderboardResponse(ServerMessage msg)
+    {
+        if (_uiState != ClientUiState.InLobby) return;
+
+        var payload = ((JsonElement)msg.Payload!).Deserialize<LeaderboardResponseDto>()!;
+
+        if (payload.Entries.Length == 0)
+        {
+            MessagesBox.Text += "Leaderboard is empty." + Environment.NewLine;
+        }
+        else
+        {
+            MessagesBox.Text += "Leaderboard:" + Environment.NewLine;
+            for (int i = 0; i < payload.Entries.Length; i++)
+            {
+                var player = payload.Entries[i];
+                MessagesBox.Text += $"{i + 1}. {player.Username} - {player.Elo}" + Environment.NewLine;
+            }
+        }
+
+        MessagesBox.CaretIndex = MessagesBox.Text.Length;
+    }
+    private void HandlePlayerInfoResponse(ServerMessage msg)
+    {
+        var info = ((JsonElement)msg.Payload!).Deserialize<PlayerInfo?>();
+
+        if (info == null)
+        {
+            MessagesBox.Text += "Player not found." + Environment.NewLine;
+        }
+        else
+        {
+            MessagesBox.Text += $"Player: {info.Username}" + Environment.NewLine;
+            MessagesBox.Text += $"Elo: {info.Elo}" + Environment.NewLine;
+            MessagesBox.Text += $"Friends: {string.Join(", ", info.Friends)}" + Environment.NewLine;
+        }
+
+        MessagesBox.CaretIndex = MessagesBox.Text.Length;
+    }
+
 
     // ========================
     // UI HELPERS

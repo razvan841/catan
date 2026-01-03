@@ -17,5 +17,11 @@ public enum MessageType
     LoginRequest,
     LoginResponse,
     ChatMessage,
-    ServerChat
+    ServerChat,
+    EloRequest,
+    EloResponse,
+    LeaderboardRequest,
+    LeaderboardResponse,
+    PlayerInfoRequest,
+    PlayerInfoResponse
 }

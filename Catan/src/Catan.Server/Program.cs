@@ -7,7 +7,7 @@ class Program
 {
     static async Task Main()
     {
-        Db.Initialize();
+        // Db.Initialize();
 
         Console.WriteLine("Database initialized! Starting TCP server...");
 
