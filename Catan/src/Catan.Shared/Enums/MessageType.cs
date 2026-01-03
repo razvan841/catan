@@ -13,5 +13,9 @@ public enum MessageType
     MatchCanceled,
     MatchStart,
     EndTurn,
-    TurnChanged
+    TurnChanged,
+    LoginRequest,
+    LoginResponse,
+    ChatMessage,
+    ServerChat
 }
