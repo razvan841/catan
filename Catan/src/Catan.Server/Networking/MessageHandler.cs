@@ -16,11 +16,6 @@ public static class MessageHandler
         if (session == null) return;
 
         var clientMessage = JsonMessageSerializer.Deserialize<ClientMessage>(payload);
-        if (session.State == SessionState.InMatch)
-        {
-            await session.GameSession!.HandleMessageAsync(session, clientMessage);
-            return;
-        }
 
         switch (clientMessage.Type)
         {
@@ -30,6 +25,10 @@ public static class MessageHandler
 
             case MessageType.RegisterRequest:
                 await HandleRegisterAsync(clientMessage, session);
+                break;
+            
+            case MessageType.LoginRequest:
+                await HandleLoginAsync(clientMessage, session);
                 break;
 
             case MessageType.QueueRequest:
@@ -51,7 +50,7 @@ public static class MessageHandler
         var response = new ServerMessage
         {
             Type = MessageType.HealthResponse,
-            Payload = new { status = "OK", serverTime = DateTime.UtcNow }
+            Payload = new HealthResponseDto { Success = true, utcNow = DateTime.UtcNow }
         };
         var data = JsonMessageSerializer.Serialize(response);
         await session.Stream.WriteAsync(data);
@@ -61,7 +60,7 @@ public static class MessageHandler
     {
         var dto = ((JsonElement)message.Payload!).Deserialize<RegisterRequestDto>()!;
 
-        if (SessionManager.UsernameExists(dto.Username))
+        if (Db.UsernameExists(dto.Username))
         {
             await SendResponseAsync(session, new ServerMessage
             {
@@ -75,6 +74,7 @@ public static class MessageHandler
             return;
         }
 
+        Db.AddUser(dto.Username, dto.Password);
         session.Register(dto.Username);
         SessionManager.Add(session);
 
@@ -85,6 +85,39 @@ public static class MessageHandler
             {
                 Success = true,
                 Message = "Registered successfully"
+            }
+        });
+    }
+
+    private static async Task HandleLoginAsync(ClientMessage message, ClientSession session)
+    {
+        var dto = ((JsonElement)message.Payload!).Deserialize<LoginRequestDto>()!;
+
+        if (!Db.ValidateUser(dto.Username, dto.Password))
+        {
+            await SendResponseAsync(session, new ServerMessage
+            {
+                Type = MessageType.LoginResponse,
+                Payload = new LoginResponseDto
+                {
+                    Success = false,
+                    Message = "Invalid username or password"
+                }
+            });
+            return;
+        }
+
+        session.Register(dto.Username);
+        SessionManager.Add(session);
+
+        
+        await SendResponseAsync(session, new ServerMessage
+        {
+            Type = MessageType.LoginResponse,
+            Payload = new LoginResponseDto
+            {
+                Success = true,
+                Message = "Login successful"
             }
         });
     }

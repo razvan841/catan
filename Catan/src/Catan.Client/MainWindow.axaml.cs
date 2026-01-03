@@ -221,6 +221,11 @@ public partial class MainWindow : Window
                 MessagesBox.CaretIndex = MessagesBox.Text.Length;
                 break;
 
+            case MessageType.HealthResponse:
+                MessagesBox.Text += msg.Payload + Environment.NewLine;
+                MessagesBox.CaretIndex = MessagesBox.Text.Length;
+                break;
+
             default:
                 Log($"Unhandled message: {msg.Type}");
                 break;

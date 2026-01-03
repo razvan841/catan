@@ -1,8 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="7.*" />
     <ProjectReference Include="..\Catan.Shared\Catan.Shared.csproj" />
     <ProjectReference Include="..\Catan.Infrastructure\Catan.Infrastructure.csproj" />
+    <PackageReference Include="BCrypt.Net-Next" Version="4.*" />
   </ItemGroup>
 
   <PropertyGroup>

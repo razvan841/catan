@@ -137,3 +137,6 @@ replays/
 
 # Coverage reports
 coverage/
+
+
+*.db
