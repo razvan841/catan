@@ -224,6 +224,7 @@ public partial class MainWindow : Window
                 break;
 
             case "clear":
+            case "c":
                 MessagesBox.Text = "";
                 MessagesBox.CaretIndex = 0;
                 break;
@@ -283,6 +284,24 @@ public partial class MainWindow : Window
                         });
                         break;
 
+            case "m":
+            case "message":
+            case "whisper":
+                if (args.Length < 2)
+                    {
+                        MessagesBox.Text += $"Usage: /m <username> <message>{Environment.NewLine}";
+                        MessagesBox.CaretIndex = MessagesBox.Text.Length;
+                        break;
+                    }
+                var message = string.Join(' ', args.Skip(1));
+                await SendAsync(new ClientMessage
+                    {
+                        Type = MessageType.WhisperRequest,
+                        Payload = new WhisperRequestDto {Username = args[0], Message = message}
+                    });
+                AppendChatLine($"[You → {args[0]}] {message}");
+                break;
+
             default:
                 MessagesBox.Text += $"Unknown command: {command}{Environment.NewLine}";
                 MessagesBox.CaretIndex = MessagesBox.Text.Length;
@@ -337,7 +356,7 @@ public partial class MainWindow : Window
             await SendAsync(new ClientMessage
             {
                 Type = MessageType.ChatMessage,
-                Payload = text
+                Payload = new ChatMessageDto {Message = text}
             });
         }
     }
@@ -375,6 +394,18 @@ public partial class MainWindow : Window
 
             case MessageType.PlayerInfoResponse:
                 HandlePlayerInfoResponse(msg);
+                break;
+
+            case MessageType.WhisperResponse:
+                HandleWhisperResponse(msg);
+                break;
+
+            case MessageType.WhisperIncoming:
+                HandleWhisperIncoming(msg);
+                break;
+
+            case MessageType.ChatMessageIncoming:
+                HandleChatMessageIncoming(msg);
                 break;
 
             default:
@@ -498,6 +529,36 @@ public partial class MainWindow : Window
         MessagesBox.CaretIndex = MessagesBox.Text.Length;
     }
 
+    private void HandleWhisperResponse(ServerMessage msg)
+    {
+        var dto = ((JsonElement)msg.Payload!)
+        .Deserialize<WhisperResponseDto>()!;
+
+        if (!dto.Success)
+        {
+            AppendChatLine($"[Whisper Error] {dto.Message}");
+        }
+    }
+
+    private void HandleWhisperIncoming(ServerMessage msg)
+    {
+        if (_uiState == ClientUiState.Disconnected || _uiState == ClientUiState.Connecting) return;
+
+        var dto = ((JsonElement)msg.Payload!)
+            .Deserialize<WhisperIncomingDto>()!;
+
+        AppendChatLine($"[Whisper ← {dto.FromUsername}] {dto.Message}");
+    }
+
+    private void HandleChatMessageIncoming(ServerMessage msg)
+    {
+        if (_uiState == ClientUiState.Disconnected || _uiState == ClientUiState.Connecting) return;
+
+        var dto = ((JsonElement)msg.Payload!)
+            .Deserialize<ChatMessageIncomingDto>()!;
+
+        AppendChatLine($"{dto.FromUsername}: {dto.Message}");
+    }
 
     // ========================
     // UI HELPERS
@@ -547,5 +608,11 @@ public partial class MainWindow : Window
         window.Content = stack;
 
         await window.ShowDialog(this);
+    }
+
+    private void AppendChatLine(string text)
+    {
+        MessagesBox.Text += text + Environment.NewLine;
+        MessagesBox.CaretIndex = MessagesBox.Text.Length;
     }
 }

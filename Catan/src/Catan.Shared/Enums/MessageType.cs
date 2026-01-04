@@ -23,5 +23,9 @@ public enum MessageType
     LeaderboardRequest,
     LeaderboardResponse,
     PlayerInfoRequest,
-    PlayerInfoResponse
+    PlayerInfoResponse,
+    WhisperRequest,
+    WhisperResponse,
+    WhisperIncoming,
+    ChatMessageIncoming
 }

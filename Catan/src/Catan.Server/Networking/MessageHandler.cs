@@ -51,6 +51,14 @@ public static class MessageHandler
                 await HandlePlayerInfoAsync(clientMessage, session);
                 break;
 
+            case MessageType.WhisperRequest:
+                await HandleWhisperRequestAsync(clientMessage, session);
+                break;
+
+            case MessageType.ChatMessage:
+                await HandleChatMessageAsync(clientMessage, session);
+                break;
+
             default:
                 Console.WriteLine($"Unknown message type: {clientMessage.Type}");
                 break;
@@ -206,6 +214,103 @@ public static class MessageHandler
 
         await SendResponseAsync(session, response);
     }
+
+    public static async Task HandleWhisperRequestAsync(ClientMessage message, ClientSession session)
+    {
+        var dto = ((JsonElement)message.Payload!).Deserialize<WhisperRequestDto>()!;
+
+        if (session.Username == null)
+        {
+            await SendResponseAsync(session, new ServerMessage
+            {
+                Type = MessageType.WhisperResponse,
+                Payload = new WhisperResponseDto
+                {
+                    Success = false,
+                    Message = "You must be logged in to whisper."
+                }
+            });
+            return;
+        }
+
+        var targetUserId = Db.GetUserId(dto.Username);
+        if (targetUserId == null)
+        {
+            await SendResponseAsync(session, new ServerMessage
+            {
+                Type = MessageType.WhisperResponse,
+                Payload = new WhisperResponseDto
+                {
+                    Success = false,
+                    Message = $"User '{dto.Username}' does not exist."
+                }
+            });
+            return;
+        }
+
+        var targetSession = SessionManager.GetById(targetUserId);
+        if (targetSession == null)
+        {
+            await SendResponseAsync(session, new ServerMessage
+            {
+                Type = MessageType.WhisperResponse,
+                Payload = new WhisperResponseDto
+                {
+                    Success = false,
+                    Message = $"User '{dto.Username}' is not online."
+                }
+            });
+            return;
+        }
+
+        await SendResponseAsync(targetSession, new ServerMessage
+        {
+            Type = MessageType.WhisperIncoming,
+            Payload = new WhisperIncomingDto
+            {
+                FromUsername = session.Username,
+                Message = dto.Message
+            }
+        });
+
+        await SendResponseAsync(session, new ServerMessage
+        {
+            Type = MessageType.WhisperResponse,
+            Payload = new WhisperResponseDto
+            {
+                Success = true,
+                Message = $"Whisper sent to {dto.Username}"
+            }
+        });
+    }
+
+    public static async Task HandleChatMessageAsync(ClientMessage message, ClientSession session)
+    {
+        var dto = ((JsonElement)message.Payload!)
+            .Deserialize<ChatMessageDto>()!;
+
+        if (session.Username == null)
+            return;
+
+        var serverMessage = new ServerMessage
+        {
+            Type = MessageType.ChatMessageIncoming,
+            Payload = new ChatMessageIncomingDto
+            {
+                FromUsername = session.Username,
+                Message = dto.Message
+            }
+        };
+
+        var data = JsonMessageSerializer.Serialize(serverMessage);
+
+        foreach (var s in SessionManager.GetAll())
+        {
+            if (s == session) continue;
+            await s.Stream.WriteAsync(data);
+        }
+    }
+
     private static async Task SendResponseAsync(ClientSession session, ServerMessage msg)
     {
         var data = JsonMessageSerializer.Serialize(msg);
