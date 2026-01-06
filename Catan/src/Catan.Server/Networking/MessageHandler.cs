@@ -4,7 +4,8 @@ using Catan.Server.Sessions;
 using Catan.Shared.Enums;
 using Catan.Shared.Networking.Messages;
 using Catan.Shared.Networking.Serialization;
-using Catan.Shared.Networking.Dtos;
+using Catan.Shared.Networking.Dtos.Client;
+using Catan.Shared.Networking.Dtos.Server;
 
 namespace Catan.Server.Networking;
 

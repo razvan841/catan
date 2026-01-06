@@ -1,8 +1,6 @@
 using System.Net;
 using System.Net.Sockets;
-using Catan.Server.Networking;
 using Catan.Server.Sessions;
-using Catan.Shared.Networking.Serialization;
 
 namespace Catan.Server.Networking.Tcp;
 

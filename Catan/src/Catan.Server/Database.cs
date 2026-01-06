@@ -1,9 +1,5 @@
-using System;
 using Microsoft.Data.Sqlite;
-using BCrypt.Net;
-using System;
-using System.Collections.Generic;
-using System.IO;
+using Catan.Shared.Models;
 
 namespace Catan.Server;
 
@@ -58,7 +54,7 @@ public static class Db
             );";
         cmd.ExecuteNonQuery();
 
-        SeedTestData();
+        // SeedTestData();
     }
 
     private static void SeedTestData()
