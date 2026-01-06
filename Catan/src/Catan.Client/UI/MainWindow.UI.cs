@@ -2,6 +2,7 @@ using System;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia;
 
 namespace Catan.Client.UI;
 
@@ -36,9 +37,33 @@ public partial class MainWindow
         var window = new Window
         {
             Title = title,
-            Width = 300,
-            Height = 150,
+            Width = 320,
+            Height = 160,
             WindowStartupLocation = WindowStartupLocation.CenterOwner
         };
+
+        var panel = new StackPanel
+        {
+            Margin = new Thickness(10),
+            Spacing = 10
+        };
+
+        panel.Children.Add(new TextBlock
+        {
+            Text = message,
+            TextWrapping = TextWrapping.Wrap
+        });
+
+        var okButton = new Button
+        {
+            Content = "OK",
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+
+        okButton.Click += (_, _) => window.Close();
+        panel.Children.Add(okButton);
+
+        window.Content = panel;
+        await window.ShowDialog(this);
     }
 }

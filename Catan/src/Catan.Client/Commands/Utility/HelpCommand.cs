@@ -19,7 +19,7 @@ public class HelpCommand : ICommandHandler
         if (args.Length == 0)
         {
             _ui.AppendChatLine(
-                "Commands: /help, /ping, /queue, /elo, /leaderboard, /playerinfo, /clear, /m");
+                "Commands: /help, /ping, /queue, /elo, /leaderboard, /playerinfo, /clear, /m, /friend, /group, /game");
             return Task.CompletedTask;
         }
 
@@ -48,7 +48,18 @@ public class HelpCommand : ICommandHandler
             case "m":
             case "whisper":
             case "w":
-                _ui.AppendChatLine("/message [usernames] - Send a private message.");
+                _ui.AppendChatLine("/message [username] - Send a private message.");
+                break;
+            case "friend":
+                _ui.AppendChatLine("/friend [username] - Send a friend request.");
+                break;
+            case "group":
+            case "g":
+                _ui.AppendChatLine("/group - Send a message to all online friends.");
+                break;
+            case "newgame":
+            case "game":
+                _ui.AppendChatLine("/game [username1] [username2] [username3] - Send a game invite to three users.");
                 break;
             default:
                 _ui.AppendChatLine($"No help available for '{args[0]}'.");

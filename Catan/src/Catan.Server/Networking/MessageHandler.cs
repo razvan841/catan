@@ -60,6 +60,18 @@ public static class MessageHandler
                 await HandleChatMessageAsync(clientMessage, session);
                 break;
 
+            case MessageType.FriendRequest:
+                await HandleFriendRequestAsync(clientMessage, session);
+                break;
+
+            case MessageType.GroupMessageRequest:
+                await HandleGroupMessageAsync(clientMessage, session);
+                break;
+
+            case MessageType.NewGameRequest:
+                await HandleNewGameAsync(clientMessage, session);
+                break;
+
             default:
                 Console.WriteLine($"Unknown message type: {clientMessage.Type}");
                 break;
@@ -287,8 +299,7 @@ public static class MessageHandler
 
     public static async Task HandleChatMessageAsync(ClientMessage message, ClientSession session)
     {
-        var dto = ((JsonElement)message.Payload!)
-            .Deserialize<ChatMessageDto>()!;
+        var dto = ((JsonElement)message.Payload!).Deserialize<ChatMessageDto>()!;
 
         if (session.Username == null)
             return;
@@ -310,6 +321,30 @@ public static class MessageHandler
             if (s == session) continue;
             await s.Stream.WriteAsync(data);
         }
+    }
+
+    public static async Task HandleFriendRequestAsync(ClientMessage message, ClientSession session)
+    {
+        var dto = ((JsonElement)message.Payload!).Deserialize<FriendRequestDto>()!;
+
+        if (session.Username == null)
+            return;
+    }
+
+    public static async Task HandleGroupMessageAsync(ClientMessage message, ClientSession session)
+    {
+        var dto = ((JsonElement)message.Payload!).Deserialize<GroupMessageRequestDto>()!;
+
+        if (session.Username == null)
+            return;
+    }
+
+    public static async Task HandleNewGameAsync(ClientMessage message, ClientSession session)
+    {
+        var dto = ((JsonElement)message.Payload!).Deserialize<NewGameRequestDto>()!;
+
+        if (session.Username == null)
+            return;
     }
 
     private static async Task SendResponseAsync(ClientSession session, ServerMessage msg)

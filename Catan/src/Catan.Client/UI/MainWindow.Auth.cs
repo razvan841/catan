@@ -14,6 +14,10 @@ public partial class MainWindow
         }
         else
         {
+            _session.UiState = ClientUiState.Auth;
+            UpdateUi();
+
+            Log($"Login failed: {dto.Message}");
             ShowErrorPopup("Login Failed", dto.Message);
         }
     }
@@ -28,6 +32,10 @@ public partial class MainWindow
         }
         else
         {
+            _session.UiState = ClientUiState.Auth;
+            UpdateUi();
+
+            Log($"Registration failed: {dto.Message}");
             ShowErrorPopup("Registration Failed", dto.Message);
         }
     }

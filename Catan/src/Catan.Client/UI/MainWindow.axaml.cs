@@ -29,8 +29,11 @@ public partial class MainWindow : Window
             new QueueCommand(_sender, _session),
             new EloCommand(_sender, _session),
             new LeaderboardCommand(_sender),
-            new PlayerInfoCommand(_sender),
-            new WhisperCommand(_sender, this)
+            new PlayerInfoCommand(_sender, this),
+            new WhisperCommand(_sender, this),
+            new FriendRequestCommand(_sender, this),
+            new GroupMessageCommand(_sender, this),
+            new CreateGameCommand(_sender, this)
         });
         new ServerMessageHandlers(this).Register(_router);
         UpdateUi();

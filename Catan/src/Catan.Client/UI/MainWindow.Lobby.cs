@@ -49,4 +49,21 @@ public partial class MainWindow
         if (!dto.Success)
             AppendChatLine($"[Whisper Error] {dto.Message}");
     }
+    public void OnFriendResponse(FriendResponseDto dto)
+    {
+        if (!dto.Success)
+            AppendChatLine($"[Friend Request Error] {dto.Message}");
+        AppendChatLine($"Successfully sent the friend request!");
+    }
+    public void OnGroupMessageResponse(GroupMessageResponseDto dto)
+    {
+        if (!dto.Success)
+            AppendChatLine($"[Group Message Error] {dto.Message}");
+    }
+    public void OnNewGameResponse(NewGameResponseDto dto)
+    {
+        if (!dto.Success)
+            AppendChatLine($"[New Game Error] {dto.Message}");
+        AppendChatLine($"Successfully sent the game request to all other users!");
+    }
 }

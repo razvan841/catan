@@ -21,7 +21,10 @@ public partial class MainWindow
 
         if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
         {
-            ShowErrorPopup("Error", "Username and password cannot be empty.");
+            ShowErrorPopup(
+                "Invalid Input",
+                "Username and password cannot be empty."
+            );
             return;
         }
 
@@ -45,7 +48,10 @@ public partial class MainWindow
 
         if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
         {
-            ShowErrorPopup("Error", "Username and password cannot be empty.");
+            ShowErrorPopup(
+                "Invalid Input",
+                "Username and password cannot be empty."
+            );
             return;
         }
 
@@ -76,5 +82,16 @@ public partial class MainWindow
         {
             Type = MessageType.HealthRequest
         });
+    }
+
+    private void Disconnect_Click(object? sender, RoutedEventArgs e)
+    {
+        _session.UiState = ClientUiState.Auth;
+        _session.Username = null;
+
+        UpdateUi();
+
+        MessagesBox.Text = "";
+        LogBox.Text = "";
     }
 }

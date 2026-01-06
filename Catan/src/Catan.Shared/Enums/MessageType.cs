@@ -27,5 +27,12 @@ public enum MessageType
     WhisperRequest,
     WhisperResponse,
     WhisperIncoming,
-    ChatMessageIncoming
+    ChatMessageIncoming,
+    FriendRequest,
+    FriendResponse,
+    GroupMessageRequest,
+    GroupMessageResponse,
+    GroupMessageIncoming,
+    NewGameRequest,
+    NewGameResponse
 }

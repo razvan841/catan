@@ -7,14 +7,14 @@ using Catan.Client.UI;
 
 namespace Catan.Client.Commands;
 
-public class GroupMessageCommand : ICommandHandler
+public class CreateGameCommand : ICommandHandler
 {
     private readonly ClientSender _sender;
     private readonly MainWindow _ui;
 
-    public string[] Aliases => new[] { "group", "g" };
+    public string[] Aliases => new[] { "newgame", "game" };
 
-    public GroupMessageCommand(ClientSender sender, MainWindow ui)
+    public CreateGameCommand(ClientSender sender, MainWindow ui)
     {
         _sender = sender;
         _ui = ui;
@@ -22,18 +22,17 @@ public class GroupMessageCommand : ICommandHandler
 
     public Task Execute(string[] args)
     {
-        if (args.Length > 1)
+        if (args.Length != 3)
         {
-            _ui.AppendChatLine("Usage: /group <message>");
+            _ui.AppendChatLine("Usage: /game <user1> <user2> <user3>");
             return Task.CompletedTask;
         }
-        var message = string.Join(' ', args);
-        _ui.AppendChatLine($"[You → Friends] {message}");
+        _ui.AppendChatLine($"You requested a game with {args[0]}, {args[1]}, {args[2]}");
 
         return _sender.SendAsync(new ClientMessage
         {
-            Type = MessageType.GroupMessageRequest,
-            Payload = new GroupMessageRequestDto { Message = message }
+            Type = MessageType.NewGameRequest,
+            Payload = new NewGameRequestDto { User1 = args[0], User2 = args[1], User3 = args[2] }
         });
     }
 }

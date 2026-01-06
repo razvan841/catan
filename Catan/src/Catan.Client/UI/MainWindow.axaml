@@ -75,6 +75,8 @@
 
                 <Button Content="Pulse"
                         Click="Pulse_Click"/>
+                <Button Content="Disconnect"
+                        Click="Disconnect_Click"/>
             </StackPanel>
 
             <!-- Messages -->

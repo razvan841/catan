@@ -30,6 +30,10 @@ public class ServerMessageHandlers
         router.Register(MessageType.WhisperResponse, HandleWhisperResponse);
         router.Register(MessageType.WhisperIncoming, HandleWhisperIncoming);
         router.Register(MessageType.ChatMessageIncoming, HandleChatIncoming);
+        router.Register(MessageType.FriendResponse, HandleFriendResponse);
+        router.Register(MessageType.GroupMessageResponse, HandleGroupMessageResponse);
+        router.Register(MessageType.GroupMessageIncoming, HandleGroupMessageIncoming);
+        router.Register(MessageType.NewGameResponse, HandleNewGameResponse);
     }
 
     private void HandleLogin(ServerMessage msg)
@@ -90,5 +94,25 @@ public class ServerMessageHandlers
     {
         var dto = ((JsonElement)msg.Payload!).Deserialize<ChatMessageIncomingDto>()!;
         Dispatcher.UIThread.Post(() => _ui.AppendChatLine($"{dto.FromUsername}: {dto.Message}"));
+    }
+    private void HandleFriendResponse(ServerMessage msg)
+    {
+        var dto = ((JsonElement)msg.Payload!).Deserialize<FriendResponseDto>()!;
+        Dispatcher.UIThread.Post(() => _ui.OnFriendResponse(dto));
+    }
+    private void HandleGroupMessageResponse(ServerMessage msg)
+    {
+        var dto = ((JsonElement)msg.Payload!).Deserialize<GroupMessageResponseDto>()!;
+        Dispatcher.UIThread.Post(() => _ui.OnGroupMessageResponse(dto));
+    }
+    private void HandleGroupMessageIncoming(ServerMessage msg)
+    {
+        var dto = ((JsonElement)msg.Payload!).Deserialize<GroupMessageIncomingDto>()!;
+        Dispatcher.UIThread.Post(() => _ui.AppendChatLine($"{dto.FromUsername}: {dto.Message}"));
+    }
+    private void HandleNewGameResponse(ServerMessage msg)
+    {
+        var dto = ((JsonElement)msg.Payload!).Deserialize<NewGameResponseDto>()!;
+        Dispatcher.UIThread.Post(() => _ui.OnNewGameResponse(dto));
     }
 }
