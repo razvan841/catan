@@ -30,9 +30,13 @@ public enum MessageType
     ChatMessageIncoming,
     FriendRequest,
     FriendResponse,
+    FriendRequestIncoming,
+    FriendRequestAnswer,
     GroupMessageRequest,
     GroupMessageResponse,
     GroupMessageIncoming,
     NewGameRequest,
-    NewGameResponse
+    NewGameResponse,
+    FriendAccepted,
+    FriendRejected
 }

@@ -33,7 +33,9 @@ public partial class MainWindow : Window
             new WhisperCommand(_sender, this),
             new FriendRequestCommand(_sender, this),
             new GroupMessageCommand(_sender, this),
-            new CreateGameCommand(_sender, this)
+            new CreateGameCommand(_sender, this),
+            new AcceptFriendCommand(_sender, this, _session),
+            new RejectFriendCommand(_sender, this, _session)
         });
         new ServerMessageHandlers(this).Register(_router);
         UpdateUi();

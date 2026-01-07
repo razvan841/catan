@@ -52,8 +52,27 @@ public partial class MainWindow
     public void OnFriendResponse(FriendResponseDto dto)
     {
         if (!dto.Success)
+        {
             AppendChatLine($"[Friend Request Error] {dto.Message}");
-        AppendChatLine($"Successfully sent the friend request!");
+            return;
+        }
+        // AppendChatLine($"Successfully sent the friend request!");
+    }
+    public void OnFriendRequestAccept(FriendAcceptedDto dto)
+    {
+
+        AppendChatLine($"[Friend Request] {dto.Username} accepted!");
+        return;
+    }
+    public void OnFriendRequestRejected(FriendAcceptedDto dto)
+    {
+
+        AppendChatLine($"[Friend Request] {dto.Username} declined!");
+        return;
+    }
+    public void OnFriendRequestIncoming(FriendRequestIncomingDto dto)
+    {
+        AppendChatLine($"Received Friend request from {dto.FromUsername}!\nType /yes {dto.FromUsername} or /no {dto.FromUsername}");
     }
     public void OnGroupMessageResponse(GroupMessageResponseDto dto)
     {

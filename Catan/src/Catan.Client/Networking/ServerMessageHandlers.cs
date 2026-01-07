@@ -31,6 +31,9 @@ public class ServerMessageHandlers
         router.Register(MessageType.WhisperIncoming, HandleWhisperIncoming);
         router.Register(MessageType.ChatMessageIncoming, HandleChatIncoming);
         router.Register(MessageType.FriendResponse, HandleFriendResponse);
+        router.Register(MessageType.FriendRequestIncoming, HandleFriendRequestIncoming);
+        router.Register(MessageType.FriendAccepted, HandleFriendRequestAccepted);
+        router.Register(MessageType.FriendRejected, HandleFriendRequestRejected);
         router.Register(MessageType.GroupMessageResponse, HandleGroupMessageResponse);
         router.Register(MessageType.GroupMessageIncoming, HandleGroupMessageIncoming);
         router.Register(MessageType.NewGameResponse, HandleNewGameResponse);
@@ -99,6 +102,21 @@ public class ServerMessageHandlers
     {
         var dto = ((JsonElement)msg.Payload!).Deserialize<FriendResponseDto>()!;
         Dispatcher.UIThread.Post(() => _ui.OnFriendResponse(dto));
+    }
+    private void HandleFriendRequestAccepted(ServerMessage msg)
+    {
+        var dto = ((JsonElement)msg.Payload!).Deserialize<FriendAcceptedDto>()!;
+        Dispatcher.UIThread.Post(() => _ui.OnFriendRequestAccept(dto));
+    }
+    private void HandleFriendRequestRejected(ServerMessage msg)
+    {
+        var dto = ((JsonElement)msg.Payload!).Deserialize<FriendAcceptedDto>()!;
+        Dispatcher.UIThread.Post(() => _ui.OnFriendRequestRejected(dto));
+    }
+    private void HandleFriendRequestIncoming(ServerMessage msg)
+    {
+        var dto = ((JsonElement)msg.Payload!).Deserialize<FriendRequestIncomingDto>()!;
+        Dispatcher.UIThread.Post(() => _ui.OnFriendRequestIncoming(dto));
     }
     private void HandleGroupMessageResponse(ServerMessage msg)
     {

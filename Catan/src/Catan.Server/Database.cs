@@ -54,6 +54,17 @@ public static class Db
             );";
         cmd.ExecuteNonQuery();
 
+        // FRIEND REQUEST TABLE
+        cmd.CommandText = @"
+            CREATE TABLE IF NOT EXISTS FriendRequest (
+            fromUserId TEXT NOT NULL,
+            toUserId TEXT NOT NULL,
+            PRIMARY KEY(fromUserId, toUserId),
+            FOREIGN KEY(fromUserId) REFERENCES User(Id),
+            FOREIGN KEY(toUserId) REFERENCES User(Id)
+        );";
+        cmd.ExecuteNonQuery();
+
         // SeedTestData();
     }
 
@@ -310,7 +321,6 @@ public static class Db
         if (string.IsNullOrEmpty(user1Id) || string.IsNullOrEmpty(user2Id))
             return false;
 
-        // prevent duplicate friendship
         if (FriendshipExists(user1Id, user2Id))
             return false;
 
@@ -342,7 +352,7 @@ public static class Db
         cmd.CommandText = @"
             SELECT COUNT(*) FROM Friend 
             WHERE (user1Id = $p1 AND user2Id = $p2)
-            OR (userId = $p2 AND user2Id = $p1);";
+            OR (user1Id = $p2 AND user2Id = $p1);";
 
         cmd.Parameters.AddWithValue("$p1", user1Id);
         cmd.Parameters.AddWithValue("$p2", user2Id);
@@ -378,6 +388,62 @@ public static class Db
 
         return friends;
     }
+
+    // ========================
+    // FRIEND REQUESTS
+    // ========================
+
+    public static bool AddFriendRequest(string fromUserId, string toUserId)
+    {
+        if (FriendshipExists(fromUserId, toUserId))
+            return false;
+
+        using var conn = new SqliteConnection($"Data Source={DbFile}");
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+
+        cmd.CommandText = @"
+            INSERT OR IGNORE INTO FriendRequest (fromUserId, toUserId)
+            VALUES ($from, $to);";
+
+        cmd.Parameters.AddWithValue("$from", fromUserId);
+        cmd.Parameters.AddWithValue("$to", toUserId);
+
+        return cmd.ExecuteNonQuery() > 0;
+    }
+
+    public static bool RemoveFriendRequest(string fromUserId, string toUserId)
+    {
+        using var conn = new SqliteConnection($"Data Source={DbFile}");
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+
+        cmd.CommandText = @"
+            DELETE FROM FriendRequest
+            WHERE fromUserId = $from AND toUserId = $to;";
+
+        cmd.Parameters.AddWithValue("$from", fromUserId);
+        cmd.Parameters.AddWithValue("$to", toUserId);
+
+        return cmd.ExecuteNonQuery() > 0;
+    }
+
+    public static bool FriendRequestExists(string fromUserId, string toUserId)
+    {
+        using var conn = new SqliteConnection($"Data Source={DbFile}");
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+
+        cmd.CommandText = @"
+            SELECT COUNT(*) FROM FriendRequest
+            WHERE fromUserId = $from AND toUserId = $to;";
+
+        cmd.Parameters.AddWithValue("$from", fromUserId);
+        cmd.Parameters.AddWithValue("$to", toUserId);
+
+        return (long)cmd.ExecuteScalar()! > 0;
+    }
+
 
 
 }

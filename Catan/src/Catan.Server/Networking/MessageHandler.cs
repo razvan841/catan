@@ -64,6 +64,10 @@ public static class MessageHandler
                 await HandleFriendRequestAsync(clientMessage, session);
                 break;
 
+            case MessageType.FriendRequestAnswer:
+                await HandleFriendRequestAnswerAsync(clientMessage, session);
+                break;
+
             case MessageType.GroupMessageRequest:
                 await HandleGroupMessageAsync(clientMessage, session);
                 break;
@@ -326,9 +330,169 @@ public static class MessageHandler
     public static async Task HandleFriendRequestAsync(ClientMessage message, ClientSession session)
     {
         var dto = ((JsonElement)message.Payload!).Deserialize<FriendRequestDto>()!;
-
-        if (session.Username == null)
+        if (session.Username == null || session.Id == null)
             return;
+
+        if (dto.Username == session.Username)
+        {
+            await SendResponseAsync(session, new ServerMessage
+            {
+                Type = MessageType.FriendResponse,
+                Payload = new FriendResponseDto
+                {
+                    Success = false,
+                    Message = "You cannot add yourself as a friend."
+                }
+            });
+            return;
+        }
+
+        var targetUserId = Db.GetUserId(dto.Username);
+        if (targetUserId == null)
+        {
+            await SendResponseAsync(session, new ServerMessage
+            {
+                Type = MessageType.FriendResponse,
+                Payload = new FriendResponseDto
+                {
+                    Success = false,
+                    Message = $"User '{dto.Username}' does not exist."
+                }
+            });
+            return;
+        }
+
+        if (Db.FriendshipExists(session.Id, targetUserId))
+        {
+            await SendResponseAsync(session, new ServerMessage
+            {
+                Type = MessageType.FriendResponse,
+                Payload = new FriendResponseDto
+                {
+                    Success = false,
+                    Message = $"You are already friends with {dto.Username}."
+                }
+            });
+            return;
+        }
+
+        if (!Db.AddFriendRequest(session.Id, targetUserId))
+        {
+            await SendResponseAsync(session, new ServerMessage
+            {
+                Type = MessageType.FriendResponse,
+                Payload = new FriendResponseDto
+                {
+                    Success = false,
+                    Message = $"Friend request to {dto.Username} already pending."
+                }
+            });
+            return;
+        }
+
+        await SendResponseAsync(session, new ServerMessage
+        {
+            Type = MessageType.FriendResponse,
+            Payload = new FriendResponseDto
+            {
+                Success = true,
+                Message = $"Friend request sent to {dto.Username}."
+            }
+        });
+
+        var targetSession = SessionManager.GetById(targetUserId);
+        if (targetSession != null)
+        {
+            await SendResponseAsync(targetSession, new ServerMessage
+            {
+                Type = MessageType.FriendRequestIncoming,
+                Payload = new FriendRequestIncomingDto
+                {
+                    FromUsername = session.Username
+                }
+            });
+        }
+    }
+
+    public static async Task HandleFriendRequestAnswerAsync(ClientMessage message, ClientSession session)
+    {
+        var dto = ((JsonElement)message.Payload!).Deserialize<FriendRequestAnswerDto>()!;
+        if (session.Username == null || session.Id == null)
+            return;
+
+        if (!string.Equals(dto.ToUsername, session.Username, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        var fromUserId = Db.GetUserId(dto.FromUsername);
+        if (fromUserId == null)
+        {
+            await SendResponseAsync(session, new ServerMessage
+            {
+                Type = MessageType.FriendResponse,
+                Payload = new FriendResponseDto
+                {
+                    Success = false,
+                    Message = $"User '{dto.FromUsername}' does not exist."
+                }
+            });
+            return;
+        }
+
+        if (!Db.FriendRequestExists(fromUserId, session.Id))
+        {
+            await SendResponseAsync(session, new ServerMessage
+            {
+                Type = MessageType.FriendResponse,
+                Payload = new FriendResponseDto
+                {
+                    Success = false,
+                    Message = $"No pending friend request from {dto.FromUsername}."
+                }
+            });
+            return;
+        }
+
+        Db.RemoveFriendRequest(fromUserId, session.Id);
+
+        if (dto.Answer)
+        {
+            Db.AddFriendship(fromUserId, session.Id);
+
+            await SendResponseAsync(session, new ServerMessage
+            {
+                Type = MessageType.FriendResponse,
+                Payload = new FriendResponseDto
+                {
+                    Success = true,
+                    Message = $"You are now friends with {dto.FromUsername}."
+                }
+            });
+
+            var requesterSession = SessionManager.GetById(fromUserId);
+            if (requesterSession != null)
+            {
+                await SendResponseAsync(requesterSession, new ServerMessage
+                {
+                    Type = MessageType.FriendAccepted,
+                    Payload = new FriendAcceptedDto
+                    {
+                        Username = session.Username
+                    }
+                });
+            }
+        }
+        else
+        {
+            await SendResponseAsync(session, new ServerMessage
+            {
+                Type = MessageType.FriendResponse,
+                Payload = new FriendResponseDto
+                {
+                    Success = true,
+                    Message = $"You rejected the friend request from {dto.FromUsername}."
+                }
+            });
+        }
     }
 
     public static async Task HandleGroupMessageAsync(ClientMessage message, ClientSession session)
