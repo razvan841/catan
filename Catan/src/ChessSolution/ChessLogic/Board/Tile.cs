@@ -1,17 +1,25 @@
 using ChessLogic.Pieces;
+using ChessLogic.Utilities;
 
-namespace ChessLogic.Board
+namespace ChessLogic.GameBoard
 {
     public class Tile
     {
-        public int X { get; }
-        public int Y { get; }
+        public Position Position { get; }
         public Piece? CurrentPiece { get; set; }
+        public bool IsEmpty => CurrentPiece == null;
 
-        public Tile(int x, int y)
+        public Tile(Position position)
         {
-            X = x;
-            Y = y;
+            Position = position;
+            CurrentPiece = null;
+        }
+        public void PlacePiece(Piece piece)
+        {
+            CurrentPiece = piece;
+        }
+        public void RemovePiece()
+        {
             CurrentPiece = null;
         }
     }

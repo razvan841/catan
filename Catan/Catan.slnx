@@ -4,6 +4,8 @@
     <Project Path="src/Catan.Infrastructure/Catan.Infrastructure.csproj" />
     <Project Path="src/Catan.Server/Catan.Server.csproj" />
     <Project Path="src/Catan.Shared/Catan.Shared.csproj" />
+    <Project Path="src/ChessSolution/ChessClient/ChessClient.csproj" />
+    <Project Path="src/ChessSolution/ChessLogic/ChessLogic.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Catan.TcpTestClient/Catan.TcpTestClient.csproj" />

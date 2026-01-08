@@ -1,17 +1,26 @@
 using ChessLogic.Utilities;
+using ChessLogic.GameBoard;
 
 namespace ChessLogic.Pieces
 {
     public abstract class Piece
     {
-        public bool IsWhite { get; }
+        public PieceColor Color { get; }
         public Position Position { get; set; }
+        public bool HasMoved { get; set; }
 
-        protected Piece(bool isWhite)
+        protected Piece(PieceColor color, Position position)
         {
-            IsWhite = isWhite;
+            Color = color;
+            Position = position;
         }
 
-        public abstract bool IsValidMove(Position newPosition);
+        public abstract IEnumerable<Position> GetLegalMoves(Board board);
+        public abstract IEnumerable<Position> GetAttackSquares(Board board);
+
+        public virtual void OnMove(Position newPosition)
+        {
+            
+        }
     }
 }
