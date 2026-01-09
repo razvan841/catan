@@ -56,15 +56,7 @@ namespace ChessClient.ViewModels
 
         private void PlaceSamplePieces()
         {
-            // White pawn
-            var whitePawn = new Pawn(true);
-            _board.PlacePiece(whitePawn, 0, 6);
-            UpdateTileSymbol(0, 6, "♙");
 
-            // Black pawn
-            var blackPawn = new Pawn(false);
-            _board.PlacePiece(blackPawn, 0, 1);
-            UpdateTileSymbol(0, 1, "♟");
         }
 
         private void UpdateTileSymbol(int x, int y, string symbol)
