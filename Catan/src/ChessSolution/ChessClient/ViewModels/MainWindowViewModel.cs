@@ -1,68 +1,39 @@
+using Avalonia.Media;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using ChessLogic.GameBoard;
-using ChessLogic.Pieces;
 
-namespace ChessClient.ViewModels
+namespace ChessClient.ViewModels;
+
+public class TileViewModel
 {
-    public class TileViewModel : INotifyPropertyChanged
+    public IBrush Background { get; }
+    public string Symbol { get; }
+
+    public TileViewModel(IBrush background, string symbol = "")
     {
-        private string color = "White";
-        private string pieceSymbol = "";
-
-        public string Color
-        {
-            get => color;
-            set { color = value; OnPropertyChanged(nameof(Color)); }
-        }
-
-        public string PieceSymbol
-        {
-            get => pieceSymbol;
-            set { pieceSymbol = value; OnPropertyChanged(nameof(PieceSymbol)); }
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged(string propertyName) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        Background = background;
+        Symbol = symbol;
     }
+}
 
-    public class MainWindowViewModel
+public class MainWindowViewModel
+{
+    public ObservableCollection<TileViewModel> Tiles { get; } = new();
+
+    public MainWindowViewModel()
     {
-        public ObservableCollection<TileViewModel> Tiles { get; }
-        private Board _board;
-
-        public MainWindowViewModel()
+        for (int y = 0; y < 8; y++)
         {
-            _board = new Board();
-            Tiles = new ObservableCollection<TileViewModel>();
-            InitializeTiles();
-            PlaceSamplePieces();
-        }
-
-        private void InitializeTiles()
-        {
-            for (int y = 0; y < 8; y++)
+            for (int x = 0; x < 8; x++)
             {
-                for (int x = 0; x < 8; x++)
-                {
-                    Tiles.Add(new TileViewModel
-                    {
-                        Color = (x + y) % 2 == 0 ? "White" : "Gray"
-                    });
-                }
+                bool light = (x + y) % 2 == 0;
+                Tiles.Add(new TileViewModel(
+                    light ? Brushes.Bisque : Brushes.SaddleBrown
+                ));
             }
         }
 
-        private void PlaceSamplePieces()
-        {
-
-        }
-
-        private void UpdateTileSymbol(int x, int y, string symbol)
-        {
-            int index = y * 8 + x;
-            Tiles[index].PieceSymbol = symbol;
-        }
+        // sample pieces
+        Tiles[6 * 8 + 4] = new TileViewModel(Brushes.Bisque, "♙");
+        Tiles[1 * 8 + 4] = new TileViewModel(Brushes.SaddleBrown, "♟");
     }
 }

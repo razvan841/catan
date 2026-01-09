@@ -87,7 +87,6 @@ namespace ChessLogic.Game
             }
 
             Board.MovePiece(move.From, move.To);
-            move.MovingPiece.OnMove(move.To);
 
             if (move.MovingPiece is Pawn p)
             {

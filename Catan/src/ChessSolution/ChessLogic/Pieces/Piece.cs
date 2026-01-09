@@ -20,7 +20,8 @@ namespace ChessLogic.Pieces
 
         public virtual void OnMove(Position newPosition)
         {
-            
+            Position = newPosition;
+            HasMoved = true;
         }
     }
 }

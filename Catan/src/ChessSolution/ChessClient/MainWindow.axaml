@@ -1,26 +1,28 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="ChessClient.MainWindow"
-        Title="Chess Game"
-        Width="500" Height="500">
+        Width="800"
+        Height="520"
+        Title="Chess">
 
-    <ItemsControl>
-        <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-                <UniformGrid Rows="8" Columns="8"/>
-            </ItemsPanelTemplate>
-        </ItemsControl.ItemsPanel>
+    <Grid ColumnDefinitions="Auto,200">
+        <!-- Chess board -->
+        <UniformGrid Name="BoardGrid"
+                     Rows="8"
+                     Columns="8"
+                     Width="500"
+                     Height="500"/>
 
-        <ItemsControl.ItemTemplate>
-            <DataTemplate>
-                <Border Background="{Binding Color}" BorderBrush="Black" BorderThickness="1">
-                    <TextBlock Text="{Binding PieceSymbol}" 
-                               HorizontalAlignment="Center" 
-                               VerticalAlignment="Center" 
-                               FontSize="24"/>
-                </Border>
-            </DataTemplate>
-        </ItemsControl.ItemTemplate>
-    </ItemsControl>
-
+        <!-- Move log -->
+        <Border Grid.Column="1"
+                BorderBrush="Black"
+                BorderThickness="1"
+                Margin="8">
+            <ScrollViewer>
+                <TextBlock Name="LogText"
+                           FontSize="14"
+                           TextWrapping="Wrap"/>
+            </ScrollViewer>
+        </Border>
+    </Grid>
 </Window>

@@ -15,7 +15,7 @@ namespace ChessClient
             {
                 desktop.MainWindow = new MainWindow
                 {
-                    DataContext = new MainWindowViewModel() // runtime binding
+                    DataContext = new MainWindowViewModel()
                 };
             }
 
