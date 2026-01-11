@@ -63,49 +63,67 @@
         <Grid x:Name="LobbyPanel"
               IsVisible="False"
               RowDefinitions="Auto,*,Auto"
-              ColumnDefinitions="3*,2*"
-              ColumnSpacing="10">
+              ColumnDefinitions="3*,1*"
+              ColumnSpacing="10"
+              RowSpacing="10"
+              Margin="0,10,0,0">
 
-            <!-- Buttons -->
-            <StackPanel Orientation="Horizontal"
-                        Spacing="10">
+            <!-- Top bar: buttons + username -->
+            <Grid Grid.Row="0" Grid.ColumnSpan="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-                <Button Content="Join Queue"
-                        Click="Queue_Click"/>
+                <!-- Left: buttons -->
+                <StackPanel Orientation="Horizontal"
+                            Spacing="10"
+                            VerticalAlignment="Center">
+                    <Button Content="Join Queue" Click="Queue_Click"/>
+                    <Button Content="Pulse" Click="Pulse_Click"/>
+                    <Button Content="Disconnect" Click="Disconnect_Click"/>
+                </StackPanel>
 
-                <Button Content="Pulse"
-                        Click="Pulse_Click"/>
+                <!-- Right: username -->
+                <TextBlock x:Name="UsernameDisplay"
+                           Grid.Column="1"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Right"
+                           FontWeight="Bold"
+                           FontSize="14"/>
+            </Grid>
 
-                <Button Content="Disconnect"
-                        Click="Disconnect_Click"/>
-            </StackPanel>
-
-            <!-- LOG (RIGHT, SMALLER) -->
-            <Border Grid.Column="1"
-                    Grid.RowSpan="3"
-                    BorderBrush="Gray"
-                    BorderThickness="1"
-                    Padding="8">
-
-                <TextBox x:Name="LogBox"
-                         IsReadOnly="True"
-                         TextWrapping="Wrap"
-                         ScrollViewer.VerticalScrollBarVisibility="Auto"/>
-            </Border>
-
-            <!-- MESSAGES (LEFT, BIGGER) -->
-            <ScrollViewer Grid.Row="1"
-                        HorizontalScrollBarVisibility="Disabled"
-                        VerticalScrollBarVisibility="Auto">
+            <!-- MESSAGES (Left, bigger) -->
+            <ScrollViewer Grid.Row="1" Grid.Column="0"
+                          HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Auto"
+                          Margin="0,5,0,0">
                 <TextBlock x:Name="MessagesPanel"
-                        TextWrapping="Wrap"/>
+                           TextWrapping="Wrap"/>
             </ScrollViewer>
 
-            <!-- TERMINAL -->
+            <!-- LOG (Right, smaller, single border) -->
+            <Border Grid.Row="1" Grid.Column="1"
+                    BorderBrush="Gray"
+                    BorderThickness="1"
+                    Padding="4"
+                    Margin="0,5,0,0">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                              VerticalScrollBarVisibility="Auto">
+                    <TextBox x:Name="LogBox"
+                             IsReadOnly="True"
+                             TextWrapping="Wrap"
+                             Background="Transparent"
+                             BorderThickness="0"/>
+                </ScrollViewer>
+            </Border>
+
+            <!-- TERMINAL (under messages only) -->
             <TextBox x:Name="CommandBox"
-                     Grid.Row="2"
+                     Grid.Row="2" Grid.Column="0"
                      Watermark="Type /command args and press Enter"
-                     KeyDown="CommandBox_KeyDown"/>
+                     KeyDown="CommandBox_KeyDown"
+                     Margin="0,5,0,0"/>
         </Grid>
 
     </Grid>

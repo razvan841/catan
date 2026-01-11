@@ -31,6 +31,8 @@ public partial class MainWindow
             "error" => Brushes.Red,
             "system" => Brushes.Blue,
             "whisper" => Brushes.Purple,
+            "green" => Brushes.Green,
+            "gray" => Brushes.Gray,
             _ => Brushes.Black
         };
 

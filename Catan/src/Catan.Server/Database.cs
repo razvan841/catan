@@ -65,6 +65,17 @@ public static class Db
         );";
         cmd.ExecuteNonQuery();
 
+        // BLOCKED TABLE
+        cmd.CommandText = @"
+        CREATE TABLE IF NOT EXISTS Blocked (
+            blockerId TEXT NOT NULL,
+            blockedId TEXT NOT NULL,
+            PRIMARY KEY(blockerId, blockedId),
+            FOREIGN KEY(blockerId) REFERENCES User(Id),
+            FOREIGN KEY(blockedId) REFERENCES User(Id)
+        );";
+        cmd.ExecuteNonQuery();
+
         // SeedTestData();
     }
 
@@ -272,6 +283,20 @@ public static class Db
             Friends = friendsList.ToArray()
         };
     }
+    public static string? GetUsernameById(string userId)
+    {
+        if (string.IsNullOrEmpty(userId)) return null;
+
+        using var conn = new SqliteConnection($"Data Source={DbFile}");
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+
+        cmd.CommandText = "SELECT Username FROM User WHERE Id = $id";
+        cmd.Parameters.AddWithValue("$id", userId);
+
+        var result = cmd.ExecuteScalar();
+        return result?.ToString();
+    }
 
     // ========================
     // GAME METHODS
@@ -443,7 +468,90 @@ public static class Db
 
         return (long)cmd.ExecuteScalar()! > 0;
     }
+    public static bool RemoveFriendship(string user1Id, string user2Id)
+    {
+        if (string.IsNullOrEmpty(user1Id) || string.IsNullOrEmpty(user2Id))
+            return false;
+
+        using var conn = new SqliteConnection($"Data Source={DbFile}");
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+
+        cmd.CommandText = @"
+            DELETE FROM Friend
+            WHERE (user1Id = $u1 AND user2Id = $u2)
+            OR (user1Id = $u2 AND user2Id = $u1);";
+
+        cmd.Parameters.AddWithValue("$u1", user1Id);
+        cmd.Parameters.AddWithValue("$u2", user2Id);
+
+        return cmd.ExecuteNonQuery() > 0;
+    }
 
 
+    // ========================
+    // BLOCKED USERS
+    // ========================
+
+    
+    public static bool AddBlock(string blockerId, string blockedId)
+    {
+        if (string.IsNullOrEmpty(blockerId) || string.IsNullOrEmpty(blockedId))
+            return false;
+
+        if (BlockExists(blockerId, blockedId))
+            return false;
+
+        using var conn = new SqliteConnection($"Data Source={DbFile}");
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+
+        cmd.CommandText = @"
+            INSERT INTO Blocked (blockerId, blockedId)
+            VALUES ($blocker, $blocked);";
+        cmd.Parameters.AddWithValue("$blocker", blockerId);
+        cmd.Parameters.AddWithValue("$blocked", blockedId);
+        cmd.ExecuteNonQuery();
+        RemoveFriendship(blockerId, blockedId);
+
+        return true;
+    }
+
+    public static bool BlockExists(string blockerId, string blockedId)
+    {
+        if (string.IsNullOrEmpty(blockerId) || string.IsNullOrEmpty(blockedId))
+            return false;
+
+        using var conn = new SqliteConnection($"Data Source={DbFile}");
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+
+        cmd.CommandText = @"
+            SELECT COUNT(*) FROM Blocked
+            WHERE blockerId = $blocker AND blockedId = $blocked;";
+        cmd.Parameters.AddWithValue("$blocker", blockerId);
+        cmd.Parameters.AddWithValue("$blocked", blockedId);
+
+        long count = (long)cmd.ExecuteScalar()!;
+        return count > 0;
+    }
+
+    public static bool RemoveBlock(string blockerId, string blockedId)
+    {
+        if (string.IsNullOrEmpty(blockerId) || string.IsNullOrEmpty(blockedId))
+            return false;
+
+        using var conn = new SqliteConnection($"Data Source={DbFile}");
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+
+        cmd.CommandText = @"
+            DELETE FROM Blocked
+            WHERE blockerId = $blocker AND blockedId = $blocked;";
+        cmd.Parameters.AddWithValue("$blocker", blockerId);
+        cmd.Parameters.AddWithValue("$blocked", blockedId);
+
+        return cmd.ExecuteNonQuery() > 0;
+    }
 
 }

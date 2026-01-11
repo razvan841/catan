@@ -22,20 +22,28 @@ public class ServerMessageHandlers
     {
         router.Register(MessageType.LoginResponse, HandleLogin);
         router.Register(MessageType.RegisterResponse, HandleRegister);
+
         router.Register(MessageType.ServerChat, HandleServerChat);
+        router.Register(MessageType.ChatMessageIncoming, HandleChatIncoming);
+
         router.Register(MessageType.HealthResponse, HandleHealth);
         router.Register(MessageType.EloResponse, HandleElo);
         router.Register(MessageType.LeaderboardResponse, HandleLeaderboard);
         router.Register(MessageType.PlayerInfoResponse, HandlePlayerInfo);
+        router.Register(MessageType.BlockResponse, HandleBlockResponse);
+        router.Register(MessageType.UnblockResponse, HandleUnblockResponse);
+
         router.Register(MessageType.WhisperResponse, HandleWhisperResponse);
         router.Register(MessageType.WhisperIncoming, HandleWhisperIncoming);
-        router.Register(MessageType.ChatMessageIncoming, HandleChatIncoming);
+        
         router.Register(MessageType.FriendResponse, HandleFriendResponse);
         router.Register(MessageType.FriendRequestIncoming, HandleFriendRequestIncoming);
         router.Register(MessageType.FriendAccepted, HandleFriendRequestAccepted);
         router.Register(MessageType.FriendRejected, HandleFriendRequestRejected);
         router.Register(MessageType.GroupMessageResponse, HandleGroupMessageResponse);
         router.Register(MessageType.GroupMessageIncoming, HandleGroupMessageIncoming);
+        router.Register(MessageType.FriendListResponse, HandleFriendListResponse);
+
         router.Register(MessageType.NewGameResponse, HandleNewGameResponse);
 
         router.Register(MessageType.QueueResponse, HandleQueueResponse);
@@ -85,6 +93,16 @@ public class ServerMessageHandlers
         var dto = ((JsonElement)msg.Payload!).Deserialize<PlayerInfo>();
         Dispatcher.UIThread.Post(() => _ui.OnPlayerInfoResponse(dto));
     }
+    private void HandleBlockResponse(ServerMessage msg)
+    {
+        var dto = ((JsonElement)msg.Payload!).Deserialize<BlockResponseDto>()!;
+        Dispatcher.UIThread.Post(() => _ui.OnBlockResponse(dto));
+    }
+    private void HandleUnblockResponse(ServerMessage msg)
+    {
+        var dto = ((JsonElement)msg.Payload!).Deserialize<UnblockResponseDto>()!;
+        Dispatcher.UIThread.Post(() => _ui.OnUnblockResponse(dto));
+    }
 
     private void HandleWhisperResponse(ServerMessage msg)
     {
@@ -132,6 +150,11 @@ public class ServerMessageHandlers
     {
         var dto = ((JsonElement)msg.Payload!).Deserialize<GroupMessageIncomingDto>()!;
         Dispatcher.UIThread.Post(() => _ui.AppendChatLine($"{dto.FromUsername}: {dto.Message}"));
+    }
+    private void HandleFriendListResponse(ServerMessage msg)
+    {
+        var dto = ((JsonElement)msg.Payload!).Deserialize<FriendListResponseDto>()!;
+        Dispatcher.UIThread.Post(() => _ui.OnFriendListResponse(dto));
     }
     private void HandleNewGameResponse(ServerMessage msg)
     {

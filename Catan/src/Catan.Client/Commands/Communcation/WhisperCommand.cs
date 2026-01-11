@@ -13,7 +13,7 @@ public class WhisperCommand : ICommandHandler
     private readonly ClientSender _sender;
     private readonly MainWindow _ui;
 
-    public string[] Aliases => new[] { "m", "message", "whisper" };
+    public string[] Aliases => new[] { "m", "message", "whisper", "w" };
 
     public WhisperCommand(ClientSender sender, MainWindow ui)
     {

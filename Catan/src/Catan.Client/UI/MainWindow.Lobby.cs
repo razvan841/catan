@@ -44,6 +44,16 @@ public partial class MainWindow
         AppendChatLine($"Elo: {info.Elo}");
         AppendChatLine($"Friends: {string.Join(", ", info.Friends)}");
     }
+    public void OnBlockResponse(BlockResponseDto dto)
+    {
+        if (!dto.Success)
+            AppendChatLine($"[Block Error] {dto.Message}", "error");
+    }
+    public void OnUnblockResponse(UnblockResponseDto dto)
+    {
+        if (!dto.Success)
+            AppendChatLine($"[Block Error] {dto.Message}", "error");
+    }
 
     public void OnWhisperResponse(WhisperResponseDto dto)
     {
@@ -80,6 +90,31 @@ public partial class MainWindow
         if (!dto.Success)
             AppendChatLine($"[Group Message Error] {dto.Message}", "error");
     }
+    public void OnFriendListResponse(FriendListResponseDto dto)
+    {
+        if (!dto.Success)
+        {
+            AppendChatLine($"[Friend List Error] {dto.Message}", "error");
+            return;
+        }
+
+        AppendChatLine("Friend List:", "system");
+
+        if (dto.Entries.Length == 0)
+        {
+            AppendChatLine("  (No friends found)", "system");
+            return;
+        }
+
+        foreach (var entry in dto.Entries)
+        {
+            string status = entry.Online ? "Online" : "Offline";
+            string color = entry.Online ? "green" : "gray";
+
+            AppendChatLine($"  {entry.Username} - {status}", color);
+        }
+    }
+
     public void OnNewGameResponse(NewGameResponseDto dto)
     {
         if (!dto.Success)

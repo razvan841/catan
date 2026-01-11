@@ -1,7 +1,51 @@
-namespace Catan.Client.State;
+using System;
+using System.Threading.Tasks;
+using Catan.Client.Networking;
+using Catan.Shared.Networking.Messages;
 
-public class ClientSession
+namespace Catan.Client.State
 {
-    public string? Username { get; set; }
-    public ClientUiState UiState { get; set; } = ClientUiState.Connecting;
+    public class ClientSession : IDisposable
+    {
+        public string? Username { get; set; }
+        public string? Id { get; set; }
+        public ClientUiState UiState { get; set; } = ClientUiState.Connecting;
+
+        public TcpClientConnection? Connection { get; private set; }
+
+        public void Connect(string host, int port)
+        {
+            Connection = new TcpClientConnection(host, port);
+            UiState = ClientUiState.Auth;
+        }
+
+        public async Task SendMessageAsync(ClientMessage message)
+        {
+            if (Connection == null)
+                throw new InvalidOperationException("Not connected.");
+
+            await Connection.SendAsync(message);
+        }
+
+        public async Task<ServerMessage> ReceiveMessageAsync()
+        {
+            if (Connection == null)
+                throw new InvalidOperationException("Not connected.");
+
+            return await Connection.ReceiveAsync();
+        }
+
+        public void Disconnect()
+        {
+            Connection?.Dispose();
+            Connection = null;
+            Username = null;
+            Id = null;
+            UiState = ClientUiState.Auth;
+        }
+        public void Dispose()
+        {
+            Disconnect();
+        }
+    }
 }

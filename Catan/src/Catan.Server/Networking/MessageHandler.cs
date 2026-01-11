@@ -76,6 +76,18 @@ public static class MessageHandler
                 await HandleNewGameAsync(clientMessage, session);
                 break;
 
+            case MessageType.BlockRequest:
+                await HandleBlockRequestAsync(clientMessage, session);
+                break;
+
+            case MessageType.UnblockRequest:
+                await HandleUnblockRequestAsync(clientMessage, session);
+                break;
+
+            case MessageType.FriendListRequest:
+                await HandleFriendListRequestAsync(clientMessage, session);
+                break;
+
             default:
                 Console.WriteLine($"Unknown message type: {clientMessage.Type}");
                 break;
@@ -264,6 +276,19 @@ public static class MessageHandler
             });
             return;
         }
+        if (Db.BlockExists(session.Id, targetUserId) || Db.BlockExists(targetUserId, session.Id))
+        {
+            await SendResponseAsync(session, new ServerMessage
+            {
+                Type = MessageType.FriendResponse,
+                Payload = new FriendResponseDto
+                {
+                    Success = false,
+                    Message = $"Cannot send friend request to {dto.Username} because you or they have blocked each other."
+                }
+            });
+            return;
+        }
 
         var targetSession = SessionManager.GetById(targetUserId);
         if (targetSession == null)
@@ -357,6 +382,19 @@ public static class MessageHandler
                 {
                     Success = false,
                     Message = $"User '{dto.Username}' does not exist."
+                }
+            });
+            return;
+        }
+        if (Db.BlockExists(session.Id, targetUserId) || Db.BlockExists(targetUserId, session.Id))
+        {
+            await SendResponseAsync(session, new ServerMessage
+            {
+                Type = MessageType.FriendResponse,
+                Payload = new FriendResponseDto
+                {
+                    Success = false,
+                    Message = $"Cannot send friend request to {dto.Username} because you or they have blocked each other."
                 }
             });
             return;
@@ -485,7 +523,7 @@ public static class MessageHandler
         {
             await SendResponseAsync(session, new ServerMessage
             {
-                Type = MessageType.FriendResponse,
+                Type = MessageType.FriendRejected,
                 Payload = new FriendResponseDto
                 {
                     Success = true,
@@ -502,7 +540,7 @@ public static class MessageHandler
         if (session.Username == null)
             return;
     }
-
+    // TODO:
     public static async Task HandleNewGameAsync(ClientMessage message, ClientSession session)
     {
         var dto = ((JsonElement)message.Payload!).Deserialize<NewGameRequestDto>()!;
@@ -510,6 +548,121 @@ public static class MessageHandler
         if (session.Username == null)
             return;
     }
+    public static async Task HandleBlockRequestAsync(ClientMessage message, ClientSession session)
+    {
+        var dto = ((JsonElement)message.Payload!).Deserialize<BlockRequestDto>()!;
+        if (session.Username == null) return;
+
+        string? blockerId = Db.GetUserId(session.Username);
+        string? blockedId = Db.GetUserId(dto.TargetUsername);
+
+        if (blockerId == null || blockedId == null)
+            return;
+
+        if (blockerId == blockedId)
+        {
+            var response1 = new ServerMessage
+            {
+                Type = MessageType.BlockResponse,
+                Payload = new
+                {
+                    Success = false,
+                    Message = "Can't block yourself!"
+                }
+            };
+
+            var data1 = JsonMessageSerializer.Serialize(response1);
+            await session.Stream.WriteAsync(data1);
+            return;
+        }
+
+        bool success = Db.AddBlock(blockerId, blockedId);
+
+        Db.RemoveFriendship(blockerId, blockedId);
+
+        var response = new ServerMessage
+        {
+            Type = MessageType.BlockResponse,
+            Payload = new
+            {
+                Success = success,
+                Message = success ? "User blocked successfully." : "User was already blocked."
+            }
+        };
+
+        var data = JsonMessageSerializer.Serialize(response);
+        await session.Stream.WriteAsync(data);
+    }
+
+    public static async Task HandleUnblockRequestAsync(ClientMessage message, ClientSession session)
+    {
+        var dto = ((JsonElement)message.Payload!).Deserialize<UnblockRequestDto>()!;
+        if (session.Username == null)
+            return;
+
+        string? unblockerId = Db.GetUserId(session.Username);
+        string? blockedId = Db.GetUserId(dto.TargetUsername);
+
+        if (unblockerId == null || blockedId == null)
+            return;
+
+        bool success = Db.RemoveBlock(unblockerId, blockedId);
+
+        var response = new ServerMessage
+        {
+            Type = MessageType.UnblockResponse,
+            Payload = new
+            {
+                Success = success,
+                TargetUsername = dto.TargetUsername,
+                Message = success ? "User unblocked successfully." : "User was not blocked."
+            }
+        };
+
+        var data = JsonMessageSerializer.Serialize(response);
+        await session.Stream.WriteAsync(data);
+    }
+
+    public static async Task HandleFriendListRequestAsync(ClientMessage message, ClientSession session)
+    {
+        if (session.Username == null) return;
+
+        string? userId = Db.GetUserId(session.Username);
+        if (userId == null) return;
+
+        var friendIds = Db.GetFriends(userId);
+        var entries = new List<FriendListResponseEntryDto>();
+
+        foreach (var fid in friendIds)
+        {
+            var username = Db.GetUsernameById(fid);
+            if (username == null) continue;
+
+            if (Db.BlockExists(userId, fid) || Db.BlockExists(fid, userId))
+                continue;
+            var friendSession = SessionManager.GetById(fid);
+            entries.Add(new FriendListResponseEntryDto
+            {
+                Username = username,
+                Online = friendSession != null 
+            });
+        }
+
+        var response = new ServerMessage
+        {
+            Type = MessageType.FriendListResponse,
+            Payload = new FriendListResponseDto
+            {
+                Success = true,
+                Message = "Friend list retrieved successfully.",
+                Entries = entries.ToArray()
+            }
+        };
+
+        var data = JsonMessageSerializer.Serialize(response);
+        await session.Stream.WriteAsync(data);
+    }
+
 
     private static async Task SendResponseAsync(ClientSession session, ServerMessage msg)
     {

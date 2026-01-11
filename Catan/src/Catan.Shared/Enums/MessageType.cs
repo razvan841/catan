@@ -38,5 +38,11 @@ public enum MessageType
     NewGameRequest,
     NewGameResponse,
     FriendAccepted,
-    FriendRejected
+    FriendRejected,
+    BlockRequest,
+    BlockResponse,
+    UnblockRequest,
+    UnblockResponse,
+    FriendListRequest,
+    FriendListResponse
 }

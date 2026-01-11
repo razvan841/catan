@@ -2,6 +2,7 @@ using Avalonia.Interactivity;
 using Catan.Shared.Networking.Dtos.Client;
 using Catan.Shared.Networking.Messages;
 using Catan.Shared.Enums;
+using System;
 
 namespace Catan.Client.UI;
 
@@ -92,11 +93,11 @@ public partial class MainWindow
 
     private void Disconnect_Click(object? sender, RoutedEventArgs e)
     {
-        _session.UiState = ClientUiState.Auth;
-        _session.Username = null;
+        _session.Disconnect();
 
         MessagesPanel.Text = "";
         LogBox.Text = "";
         UpdateUi();
     }
+
 }

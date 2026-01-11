@@ -61,6 +61,15 @@ public class HelpCommand : ICommandHandler
             case "game":
                 _ui.AppendChatLine("/game [username1] [username2] [username3] - Send a game invite to three users.");
                 break;
+            case "block":
+                _ui.AppendChatLine("/block [username] - Block a specific user.");
+                break;
+            case "unblock":
+                _ui.AppendChatLine("/unblock [username1] - Unblock a specific user.");
+                break;
+            case "friendlist":
+                _ui.AppendChatLine("/friendlist - Get a list of your friends and their status (online/offline).");
+                break;
             default:
                 _ui.AppendChatLine($"No help available for '{args[0]}'.");
                 break;

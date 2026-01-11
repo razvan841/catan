@@ -36,7 +36,10 @@ public partial class MainWindow : Window
             new GroupMessageCommand(_sender, this),
             new CreateGameCommand(_sender, this),
             new AcceptFriendCommand(_sender, this, _session),
-            new RejectFriendCommand(_sender, this, _session)
+            new RejectFriendCommand(_sender, this, _session),
+            new BlockUserCommand(_sender, this),
+            new UnblockUserCommand(_sender, this),
+            new GetFriendsCommand(_sender, this),
         });
 
         new ServerMessageHandlers(this).Register(_router);
