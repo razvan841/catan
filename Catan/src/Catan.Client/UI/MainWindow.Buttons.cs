@@ -70,9 +70,15 @@ public partial class MainWindow
 
     private async void Queue_Click(object? sender, RoutedEventArgs e)
     {
+        if (_session.Username == null)
+            return;
         await _sender.SendAsync(new ClientMessage
         {
-            Type = MessageType.QueueRequest
+            Type = MessageType.QueueRequest,
+            Payload = new QueueRequestDto
+            {
+                Username = _session.Username
+            }
         });
     }
 
@@ -89,9 +95,8 @@ public partial class MainWindow
         _session.UiState = ClientUiState.Auth;
         _session.Username = null;
 
-        UpdateUi();
-
         MessagesBox.Text = "";
         LogBox.Text = "";
+        UpdateUi();
     }
 }

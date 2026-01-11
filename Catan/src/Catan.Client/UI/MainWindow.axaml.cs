@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using Avalonia.Controls;
-using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Catan.Client.Networking;
 using Catan.Client.State;
@@ -12,6 +11,8 @@ namespace Catan.Client.UI;
 public partial class MainWindow : Window
 {
     private TcpClientConnection? _connection;
+    private readonly MatchmakingClient _matchmakingClient = new();
+    private MatchFoundWindow? _matchDialog;
     private readonly ClientSession _session = new();
     private readonly ClientSender _sender = new();
     private readonly ServerMessageRouter _router = new();
@@ -37,10 +38,13 @@ public partial class MainWindow : Window
             new AcceptFriendCommand(_sender, this, _session),
             new RejectFriendCommand(_sender, this, _session)
         });
+
         new ServerMessageHandlers(this).Register(_router);
+
         UpdateUi();
         _ = TryConnectAsync();
     }
+
 
     private async Task TryConnectAsync()
     {
@@ -48,6 +52,7 @@ public partial class MainWindow : Window
         {
             _connection = new TcpClientConnection("127.0.0.1", 5000);
             _sender.Attach(_connection);
+            _matchmakingClient.Attach(_connection);
             _session.UiState = ClientUiState.Auth;
 
             _ = Task.Run(ListenAsync);

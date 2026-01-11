@@ -1,10 +1,14 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Catan.Server.Game;
 using Catan.Server.Sessions;
-using Catan.Shared.Networking.Messages;
-using Catan.Shared.Networking.Serialization;
+using Catan.Shared.Enums;
 using Catan.Shared.Networking.Dtos.Client;
 using Catan.Shared.Networking.Dtos.Server;
-using Catan.Shared.Enums;
+using Catan.Shared.Networking.Messages;
+using Catan.Shared.Networking.Serialization;
 
 namespace Catan.Server.Matchmaking;
 
@@ -12,92 +16,133 @@ public static class MatchmakingService
 {
     private static readonly List<ClientSession> _queue = new();
     private static readonly Dictionary<Guid, PendingMatch> _pendingMatches = new();
+    private static readonly object _lock = new();
+    public const int CatanPlayers = 2;
+
+    // ============================
+    // Queue
+    // ============================
 
     public static bool TryEnqueue(ClientSession session, out string reason)
     {
-        if (_queue.Contains(session))
+        lock (_lock)
         {
-            reason = "Already in queue";
-            return false;
+            if (_queue.Contains(session))
+            {
+                reason = "Already in queue";
+                return false;
+            }
+
+            _queue.Add(session);
+            reason = "Added to queue";
+
+            if (_queue.Count >= CatanPlayers)
+                _ = CreatePendingMatchAsync();
         }
-
-        _queue.Add(session);
-        reason = "Added to queue";
-
-        if (_queue.Count >= 4)
-            CreatePendingMatch();
 
         return true;
     }
 
-    private static async void CreatePendingMatch()
+    // ============================
+    // Match creation
+    // ============================
+
+    private static async Task CreatePendingMatchAsync()
     {
-        var players = _queue.Take(4).ToList();
-        var match = new PendingMatch(players);
+        PendingMatch match;
 
-        _pendingMatches[match.MatchId] = match;
+        lock (_lock)
+        {
+            if (_queue.Count < CatanPlayers)
+                return;
 
-        var message = new ServerMessage
+            var players = _queue.Take(CatanPlayers).ToList();
+            _queue.RemoveRange(0, CatanPlayers);
+
+            match = new PendingMatch(players);
+            _pendingMatches[match.MatchId] = match;
+        }
+
+        var msg = new ServerMessage
         {
             Type = MessageType.MatchFound,
             Payload = new MatchFoundDto
             {
                 MatchId = match.MatchId,
-                Players = players.Select(p => p.Username!).ToArray()
-            }
-        };
-
-        var data = JsonMessageSerializer.Serialize(message);
-
-        foreach (var p in players)
-            await p.Stream.WriteAsync(data);
-    }
-
-    public static async void HandleMatchResponse(ClientSession session, MatchResponseDto dto)
-    {
-        if (!_pendingMatches.TryGetValue(dto.MatchId, out var match))
-            return;
-
-        if (!dto.Accepted)
-        {
-            _queue.Remove(session);
-            match.Players.Remove(session);
-
-            await NotifyAsync(match.Players, "Match canceled (player declined)");
-
-            _pendingMatches.Remove(dto.MatchId);
-            return;
-        }
-
-        match.AwaitingResponses.Remove(session);
-
-        if (match.AwaitingResponses.Count == 0)
-        {
-            foreach (var p in match.Players)
-                _queue.Remove(p);
-
-            var game = new GameSession(match.Players);
-            await game.StartAsync();
-
-            _pendingMatches.Remove(dto.MatchId);
-        }
-    }
-
-    private static async Task NotifyAsync(IEnumerable<ClientSession> sessions, string message)
-    {
-        var msg = new ServerMessage
-        {
-            Type = MessageType.MatchCanceled,
-            Payload = new
-            {
-                Success = false,
-                Message = message
+                Players = match.Players.Select(p => p.Username!).ToArray()
             }
         };
 
         var data = JsonMessageSerializer.Serialize(msg);
 
-        foreach (var s in sessions)
-            await s.Stream.WriteAsync(data);
+        foreach (var p in match.Players)
+            await p.Stream.WriteAsync(data);
+    }
+
+    // ============================
+    // Match response
+    // ============================
+
+    public static async Task HandleMatchResponseAsync(ClientSession session, MatchResponseDto dto)
+    {
+        PendingMatch match;
+
+        lock (_lock)
+        {
+            if (!_pendingMatches.TryGetValue(dto.MatchId, out match))
+                return;
+        }
+
+        if (!dto.Accepted)
+        {
+            await CancelMatchAsync(match, $"Match canceled (player {session.Username} declined");
+            return;
+        }
+
+        bool shouldStart;
+
+        lock (_lock)
+        {
+            match.AwaitingResponses.Remove(session);
+            shouldStart = match.AwaitingResponses.Count == 0;
+        }
+
+        if (!shouldStart)
+            return;
+
+        lock (_lock)
+        {
+            _pendingMatches.Remove(match.MatchId);
+        }
+
+        var game = new GameSession(match.Players);
+        await game.StartAsync();
+    }
+
+    // ============================
+    // Cancel match
+    // ============================
+
+    private static async Task CancelMatchAsync(PendingMatch match, string reason)
+    {
+        lock (_lock)
+        {
+            _pendingMatches.Remove(match.MatchId);
+        }
+
+        var msg = new ServerMessage
+        {
+            Type = MessageType.MatchCanceled,
+            Payload = new MatchCanceledDto
+            {
+                MatchId = match.MatchId,
+                Reason = reason
+            }
+        };
+
+        var data = JsonMessageSerializer.Serialize(msg);
+
+        foreach (var p in match.Players)
+            await p.Stream.WriteAsync(data);
     }
 }

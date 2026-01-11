@@ -1,0 +1,52 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Catan.Client.UI.MatchFoundWindow"
+        Width="420"
+        Height="220"
+        CanResize="False"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        SystemDecorations="None"
+        Background="#0b10a300">
+
+    <Border Background="#06101f"
+            CornerRadius="10"
+            Padding="20"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center">
+
+        <StackPanel Spacing="14">
+
+            <TextBlock Text="Match Found!"
+                       FontSize="22"
+                       FontWeight="Bold"
+                       Foreground="White"
+                       HorizontalAlignment="Center"/>
+
+            <TextBlock Text="{Binding CountdownText}"
+                       FontSize="14"
+                       Foreground="White"
+                       HorizontalAlignment="Center"/>
+
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        Spacing="20">
+
+                <Button Content="Accept"
+                        Width="110"
+                        Background="#22C55E"
+                        Foreground="White"
+                        FontWeight="Bold"
+                        Command="{Binding AcceptCommand}"/>
+
+                <Button Content="Decline"
+                        Width="110"
+                        Background="#EF4444"
+                        Foreground="White"
+                        FontWeight="Bold"
+                        Command="{Binding DeclineCommand}"/>
+            </StackPanel>
+
+        </StackPanel>
+    </Border>
+</Window>

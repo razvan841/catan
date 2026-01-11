@@ -1,5 +1,6 @@
 using System;
 using Catan.Shared.Models;
+using Catan.Client.Networking;
 using Catan.Shared.Networking.Dtos.Server;
 
 namespace Catan.Client.UI;
@@ -82,7 +83,47 @@ public partial class MainWindow
     public void OnNewGameResponse(NewGameResponseDto dto)
     {
         if (!dto.Success)
+        {
             AppendChatLine($"[New Game Error] {dto.Message}");
+            return;
+        }
         AppendChatLine($"Successfully sent the game request to all other users!");
+    }
+    public void OnQueueResponse(QueueResponseDto dto)
+    {
+        if (!dto.Success)
+        {
+            AppendChatLine($"[Queue Error] {dto.Message}");
+            return;
+        }
+        AppendChatLine($"Joined the queue! Waiting for more players...");
+    }
+    public async void OnMatchFound(MatchFoundDto dto)
+    {
+        if (_matchDialog != null)
+            return;
+
+        _matchDialog = new MatchFoundWindow();
+
+        bool accepted = await _matchDialog.ShowDialog<bool>(this);
+
+        _matchDialog = null;
+
+        await _matchmakingClient.SendMatchResponse(accepted, dto.MatchId);
+    }
+    public void OnMatchCanceled(MatchCanceledDto dto)
+    {
+        _matchDialog?.Close(false);
+        _matchDialog = null;
+
+        AppendChatLine($"Match Canceled: {dto.Reason}");
+    }
+
+    public void OnMatchStart(MatchStartDto dto)
+    {
+        _matchDialog?.Close(true);
+        _matchDialog = null;
+
+        AppendChatLine("Match starting!");
     }
 }

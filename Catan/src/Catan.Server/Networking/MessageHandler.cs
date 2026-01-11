@@ -37,7 +37,7 @@ public static class MessageHandler
                 break;
 
             case MessageType.MatchResponse:
-                HandleMatchResponse(clientMessage, session);
+                await HandleMatchResponse(clientMessage, session);
                 break;
             
             case MessageType.EloRequest:
@@ -173,10 +173,10 @@ public static class MessageHandler
         });
     }
 
-    private static void HandleMatchResponse(ClientMessage message, ClientSession session)
+    private static async Task HandleMatchResponse(ClientMessage message, ClientSession session)
     {
         var dto = ((JsonElement)message.Payload!).Deserialize<MatchResponseDto>()!;
-        Matchmaking.MatchmakingService.HandleMatchResponse(session, dto);
+        await Matchmaking.MatchmakingService.HandleMatchResponseAsync(session, dto);
     }
 
     private static async Task HandleEloAsync(ClientMessage message, ClientSession session)

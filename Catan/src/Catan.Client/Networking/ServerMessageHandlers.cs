@@ -37,6 +37,11 @@ public class ServerMessageHandlers
         router.Register(MessageType.GroupMessageResponse, HandleGroupMessageResponse);
         router.Register(MessageType.GroupMessageIncoming, HandleGroupMessageIncoming);
         router.Register(MessageType.NewGameResponse, HandleNewGameResponse);
+
+        router.Register(MessageType.QueueResponse, HandleQueueResponse);
+        router.Register(MessageType.MatchFound, HandleMatchFound);
+        router.Register(MessageType.MatchCanceled, HandleMatchCanceled);
+        router.Register(MessageType.MatchStart, HandleMatchStart);
     }
 
     private void HandleLogin(ServerMessage msg)
@@ -132,5 +137,25 @@ public class ServerMessageHandlers
     {
         var dto = ((JsonElement)msg.Payload!).Deserialize<NewGameResponseDto>()!;
         Dispatcher.UIThread.Post(() => _ui.OnNewGameResponse(dto));
+    }
+    private void HandleQueueResponse(ServerMessage msg)
+    {
+        var dto = ((JsonElement)msg.Payload!).Deserialize<QueueResponseDto>()!;
+        Dispatcher.UIThread.Post(() => _ui.OnQueueResponse(dto));
+    }
+    private void HandleMatchFound(ServerMessage msg)
+    {
+        var dto = ((JsonElement)msg.Payload!).Deserialize<MatchFoundDto>()!;
+        Dispatcher.UIThread.Post(() => _ui.OnMatchFound(dto));
+    }
+    private void HandleMatchCanceled(ServerMessage msg)
+    {
+        var dto = ((JsonElement)msg.Payload!).Deserialize<MatchCanceledDto>()!;
+        Dispatcher.UIThread.Post(() => _ui.OnMatchCanceled(dto));
+    }
+    private void HandleMatchStart(ServerMessage msg)
+    {
+        var dto = ((JsonElement)msg.Payload!).Deserialize<MatchStartDto>()!;
+        Dispatcher.UIThread.Post(() => _ui.OnMatchStart(dto));
     }
 }
