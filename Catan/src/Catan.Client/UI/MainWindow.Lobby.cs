@@ -9,34 +9,34 @@ public partial class MainWindow
 {
     public void OnHealthResponse(HealthResponseDto dto)
     {
-        AppendChatLine($"Health check: {(dto.Success ? "OK" : "FAIL")} at {dto.ServerTime}");
+        AppendChatLine($"Health check: {(dto.Success ? "OK" : "FAIL")} at {dto.ServerTime}", "system");
     }
 
     public void OnEloResponse(EloResponseDto dto)
     {
         if (dto.Entries.Length == 0)
         {
-            AppendChatLine("No Elo data returned.");
+            AppendChatLine("No Elo data returned.", "system");
             return;
         }
 
         AppendChatLine("Elo Scores:");
         foreach (var e in dto.Entries)
-            AppendChatLine($"{e.Username}: {e.Elo}");
+            AppendChatLine($"{e.Username}: {e.Elo}", "system");
     }
 
     public void OnLeaderboardResponse(LeaderboardResponseDto dto)
     {
-        AppendChatLine("Leaderboard:");
+        AppendChatLine("Leaderboard:", "system");
         for (int i = 0; i < dto.Entries.Length; i++)
-            AppendChatLine($"{i + 1}. {dto.Entries[i].Username} - {dto.Entries[i].Elo}");
+            AppendChatLine($"{i + 1}. {dto.Entries[i].Username} - {dto.Entries[i].Elo}", "system");
     }
 
     public void OnPlayerInfoResponse(PlayerInfo? info)
     {
         if (info == null)
         {
-            AppendChatLine("Player not found.");
+            AppendChatLine("Player not found.", "error");
             return;
         }
 
@@ -48,13 +48,13 @@ public partial class MainWindow
     public void OnWhisperResponse(WhisperResponseDto dto)
     {
         if (!dto.Success)
-            AppendChatLine($"[Whisper Error] {dto.Message}");
+            AppendChatLine($"[Whisper Error] {dto.Message}", "error");
     }
     public void OnFriendResponse(FriendResponseDto dto)
     {
         if (!dto.Success)
         {
-            AppendChatLine($"[Friend Request Error] {dto.Message}");
+            AppendChatLine($"[Friend Request Error] {dto.Message}", "error");
             return;
         }
         // AppendChatLine($"Successfully sent the friend request!");
@@ -62,41 +62,41 @@ public partial class MainWindow
     public void OnFriendRequestAccept(FriendAcceptedDto dto)
     {
 
-        AppendChatLine($"[Friend Request] {dto.Username} accepted!");
+        AppendChatLine($"[Friend Request] {dto.Username} accepted!", "system");
         return;
     }
     public void OnFriendRequestRejected(FriendAcceptedDto dto)
     {
 
-        AppendChatLine($"[Friend Request] {dto.Username} declined!");
+        AppendChatLine($"[Friend Request] {dto.Username} declined!", "system");
         return;
     }
     public void OnFriendRequestIncoming(FriendRequestIncomingDto dto)
     {
-        AppendChatLine($"Received Friend request from {dto.FromUsername}!\nType /yes {dto.FromUsername} or /no {dto.FromUsername}");
+        AppendChatLine($"Received Friend request from {dto.FromUsername}!\nType /yes {dto.FromUsername} or /no {dto.FromUsername}", "system");
     }
     public void OnGroupMessageResponse(GroupMessageResponseDto dto)
     {
         if (!dto.Success)
-            AppendChatLine($"[Group Message Error] {dto.Message}");
+            AppendChatLine($"[Group Message Error] {dto.Message}", "error");
     }
     public void OnNewGameResponse(NewGameResponseDto dto)
     {
         if (!dto.Success)
         {
-            AppendChatLine($"[New Game Error] {dto.Message}");
+            AppendChatLine($"[New Game Error] {dto.Message}", "error");
             return;
         }
-        AppendChatLine($"Successfully sent the game request to all other users!");
+        AppendChatLine($"Successfully sent the game request to all other users!", "system");
     }
     public void OnQueueResponse(QueueResponseDto dto)
     {
         if (!dto.Success)
         {
-            AppendChatLine($"[Queue Error] {dto.Message}");
+            AppendChatLine($"[Queue Error] {dto.Message}", "error");
             return;
         }
-        AppendChatLine($"Joined the queue! Waiting for more players...");
+        AppendChatLine($"Joined the queue! Waiting for more players...", "system");
     }
     public async void OnMatchFound(MatchFoundDto dto)
     {
@@ -116,7 +116,7 @@ public partial class MainWindow
         _matchDialog?.Close(false);
         _matchDialog = null;
 
-        AppendChatLine($"Match Canceled: {dto.Reason}");
+        AppendChatLine($"Match Canceled: {dto.Reason}", "error");
     }
 
     public void OnMatchStart(MatchStartDto dto)
@@ -124,6 +124,6 @@ public partial class MainWindow
         _matchDialog?.Close(true);
         _matchDialog = null;
 
-        AppendChatLine("Match starting!");
+        AppendChatLine("Match starting!", "system");
     }
 }

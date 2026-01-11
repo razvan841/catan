@@ -24,11 +24,11 @@ public class GroupMessageCommand : ICommandHandler
     {
         if (args.Length > 1)
         {
-            _ui.AppendChatLine("Usage: /group <message>");
+            _ui.AppendChatLine("Usage: /group <message>", "error");
             return Task.CompletedTask;
         }
         var message = string.Join(' ', args);
-        _ui.AppendChatLine($"[You → Friends] {message}");
+        _ui.AppendChatLine($"[You → Friends] {message}", "system");
 
         return _sender.SendAsync(new ClientMessage
         {

@@ -24,7 +24,7 @@ public class FriendRequestCommand : ICommandHandler
     {
         if (args.Length != 1)
         {
-            _ui.AppendChatLine("Usage: /friend <username>");
+            _ui.AppendChatLine("Usage: /friend <username>", "error");
             return Task.CompletedTask;
         }
 

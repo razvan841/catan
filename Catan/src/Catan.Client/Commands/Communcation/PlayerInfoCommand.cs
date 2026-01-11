@@ -25,7 +25,7 @@ public class PlayerInfoCommand : ICommandHandler
     {
         if (args.Length != 1)
         {
-            _ui.AppendChatLine("Usage: /playerinfo <username>");
+            _ui.AppendChatLine("Usage: /playerinfo <username>", "error");
             return Task.CompletedTask;
         }
         return _sender.SendAsync(new ClientMessage

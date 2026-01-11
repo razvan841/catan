@@ -94,11 +94,12 @@
             </Border>
 
             <!-- MESSAGES (LEFT, BIGGER) -->
-            <TextBox x:Name="MessagesBox"
-                     Grid.Row="1"
-                     IsReadOnly="True"
-                     TextWrapping="Wrap"
-                     ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+            <ScrollViewer Grid.Row="1"
+                        HorizontalScrollBarVisibility="Disabled"
+                        VerticalScrollBarVisibility="Auto">
+                <TextBlock x:Name="MessagesPanel"
+                        TextWrapping="Wrap"/>
+            </ScrollViewer>
 
             <!-- TERMINAL -->
             <TextBox x:Name="CommandBox"

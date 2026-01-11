@@ -27,7 +27,7 @@ public class RejectFriendCommand : ICommandHandler
     {
         if (args.Length != 1)
         {
-            _ui.AppendChatLine("Usage: /no <username>");
+            _ui.AppendChatLine("Usage: /no <username>", "error");
             return Task.CompletedTask;
         }
 

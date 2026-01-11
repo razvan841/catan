@@ -24,10 +24,10 @@ public class CreateGameCommand : ICommandHandler
     {
         if (args.Length != 3)
         {
-            _ui.AppendChatLine("Usage: /game <user1> <user2> <user3>");
+            _ui.AppendChatLine("Usage: /game <user1> <user2> <user3>", "error");
             return Task.CompletedTask;
         }
-        _ui.AppendChatLine($"You requested a game with {args[0]}, {args[1]}, {args[2]}");
+        _ui.AppendChatLine($"You requested a game with {args[0]}, {args[1]}, {args[2]}", "system");
 
         return _sender.SendAsync(new ClientMessage
         {

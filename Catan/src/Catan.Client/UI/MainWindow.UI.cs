@@ -2,6 +2,7 @@ using System;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Controls.Documents;
 using Avalonia;
 
 namespace Catan.Client.UI;
@@ -21,15 +22,36 @@ public partial class MainWindow
         LogBox.CaretIndex = LogBox.Text.Length;
     }
 
-    public void AppendChatLine(string text)
+    public void AppendChatLine(string text, string? type = null)
     {
-        MessagesBox.Text += text + Environment.NewLine;
-        MessagesBox.CaretIndex = MessagesBox.Text.Length;
+        if (MessagesPanel.Inlines == null)
+            return;
+        IBrush color = type switch
+        {
+            "error" => Brushes.Red,
+            "system" => Brushes.Blue,
+            "whisper" => Brushes.Purple,
+            _ => Brushes.Black
+        };
+
+        var run = new Run
+        {
+            Text = text,
+            Foreground = color
+        };
+
+        MessagesPanel.Inlines.Add(run);
+        MessagesPanel.Inlines.Add(new Run { Text = Environment.NewLine });
+
+        if (MessagesPanel.Parent is ScrollViewer sv)
+            sv.ScrollToEnd();
     }
+
     public void ClearMessages()
     {
-        MessagesBox.Text = "";
-        MessagesBox.CaretIndex = 0;
+        if (MessagesPanel.Inlines == null)
+            return;
+        MessagesPanel.Inlines.Clear();
     }
 
     private async void ShowErrorPopup(string title, string message)

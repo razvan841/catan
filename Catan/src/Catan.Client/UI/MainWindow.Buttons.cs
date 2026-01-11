@@ -95,7 +95,7 @@ public partial class MainWindow
         _session.UiState = ClientUiState.Auth;
         _session.Username = null;
 
-        MessagesBox.Text = "";
+        MessagesPanel.Text = "";
         LogBox.Text = "";
         UpdateUi();
     }

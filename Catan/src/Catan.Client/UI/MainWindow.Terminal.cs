@@ -36,7 +36,7 @@ public partial class MainWindow
     private async Task SendChatMessageAsync(string text)
     {
         // Local echo (same behavior as before)
-        AppendChatLine($"You: {text}");
+        AppendChatLine($"You: {text}", "system");
 
         await _sender.SendAsync(new ClientMessage
         {

@@ -27,7 +27,7 @@ public class AcceptFriendCommand : ICommandHandler
     {
         if (args.Length != 1)
         {
-            _ui.AppendChatLine("Usage: /yes <username>");
+            _ui.AppendChatLine("Usage: /yes <username>", "error");
             return Task.CompletedTask;
         }
 

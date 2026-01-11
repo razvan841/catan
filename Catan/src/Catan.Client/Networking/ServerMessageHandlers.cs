@@ -95,7 +95,7 @@ public class ServerMessageHandlers
     private void HandleWhisperIncoming(ServerMessage msg)
     {
         var dto = ((JsonElement)msg.Payload!).Deserialize<WhisperIncomingDto>()!;
-        Dispatcher.UIThread.Post(() => _ui.AppendChatLine($"[Whisper ← {dto.FromUsername}] {dto.Message}"));
+        Dispatcher.UIThread.Post(() => _ui.AppendChatLine($"[Whisper ← {dto.FromUsername}] {dto.Message}", "whisper"));
     }
 
     private void HandleChatIncoming(ServerMessage msg)

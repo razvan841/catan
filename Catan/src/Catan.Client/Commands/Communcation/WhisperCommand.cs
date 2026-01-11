@@ -25,14 +25,14 @@ public class WhisperCommand : ICommandHandler
     {
         if (args.Length < 2)
         {
-            _ui.AppendChatLine("Usage: /m <username> <message>");
+            _ui.AppendChatLine("Usage: /m <username> <message>", "error");
             return Task.CompletedTask;
         }
 
         var target = args[0];
         var message = string.Join(' ', args.Skip(1));
 
-        _ui.AppendChatLine($"[You → {target}] {message}");
+        _ui.AppendChatLine($"[You → {target}] {message}", "system");
 
         return _sender.SendAsync(new ClientMessage
         {
