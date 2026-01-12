@@ -5,5 +5,6 @@ public enum ClientUiState
     Connecting,
     Disconnected,
     Auth,
-    InLobby
+    InLobby,
+    InProfile
 }

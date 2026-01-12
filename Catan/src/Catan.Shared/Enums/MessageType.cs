@@ -46,5 +46,7 @@ public enum MessageType
     FriendListRequest,
     FriendListResponse,
     UnfriendRequest,
-    UnfriendResponse
+    UnfriendResponse,
+    ProfileRequest,
+    ProfileResponse
 }

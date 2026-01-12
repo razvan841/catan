@@ -5,6 +5,8 @@ using Avalonia.Threading;
 using Catan.Client.Networking;
 using Catan.Client.State;
 using Catan.Client.Commands;
+using Catan.Shared.Enums;
+using Catan.Shared.Networking.Messages;
 
 namespace Catan.Client.UI;
 
@@ -21,6 +23,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        InitializeProfileView();
 
         _commandDispatcher = new CommandDispatcher(new ICommandHandler[]
         {
@@ -90,5 +93,25 @@ public partial class MainWindow : Window
             });
         }
     }
+
+    private void InitializeProfileView()
+    {
+        ProfileView.BackRequested += () =>
+        {
+            _session.UiState = ClientUiState.InLobby;
+            UpdateUi();
+        };
+    }
+
+    private async Task RequestProfileDataAsync()
+    {
+        if(_connection == null)
+            return;
+        await _connection.SendAsync(new ClientMessage
+        {
+            Type = MessageType.ProfileRequest
+        });
+    }
+
 
 }

@@ -1,8 +1,9 @@
 namespace Catan.Shared.Networking.Dtos.Server
 {
-    public class FriendListResponseEntryDto
+    public class FriendListResponseDto
     {
-        public string Username { get; set; } = "";
-        public bool Online { get; set; }
+        public FriendListResponseEntryDto[] Entries { get; set; } = Array.Empty<FriendListResponseEntryDto>();
+        public bool Success { get; set; }
+        public string Message { get; set; } = string.Empty;
     }
 }

@@ -2,6 +2,7 @@ using Avalonia.Interactivity;
 using Catan.Shared.Networking.Dtos.Client;
 using Catan.Shared.Networking.Messages;
 using Catan.Shared.Enums;
+using Avalonia.Input;
 using System;
 
 namespace Catan.Client.UI;
@@ -93,11 +94,22 @@ public partial class MainWindow
 
     private void Disconnect_Click(object? sender, RoutedEventArgs e)
     {
+        _connection?.Dispose();
+        _connection = null;
+
         _session.Disconnect();
 
         MessagesPanel.Text = "";
         LogBox.Text = "";
+
         UpdateUi();
+    }
+
+    private async void UsernameDisplay_Click(object? sender, PointerPressedEventArgs e)
+    {
+        LobbyPanel.IsVisible = false;
+        ProfileView.IsVisible = true;
+        await RequestProfileDataAsync();
     }
 
 }

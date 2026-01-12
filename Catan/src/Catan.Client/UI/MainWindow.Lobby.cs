@@ -166,4 +166,9 @@ public partial class MainWindow
 
         AppendChatLine("Match starting!", "system");
     }
+
+    public void OnProfileResponse(ProfileResponseDto dto)
+    {
+        ProfileView.LoadProfile(dto);
+    }
 }

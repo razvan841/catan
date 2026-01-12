@@ -14,6 +14,12 @@ public partial class MainWindow
         DisconnectedPanel.IsVisible = _session.UiState == ClientUiState.Disconnected;
         AuthPanel.IsVisible = _session.UiState == ClientUiState.Auth;
         LobbyPanel.IsVisible = _session.UiState == ClientUiState.InLobby;
+        ProfileView.IsVisible = _session.UiState == ClientUiState.InProfile;
+
+        UsernameDisplay.Text =
+            _session.UiState == ClientUiState.InLobby && _session.Username != null
+                ? _session.Username
+                : string.Empty;
     }
 
     private void Log(string text)

@@ -1,5 +1,7 @@
 using Microsoft.Data.Sqlite;
 using Catan.Shared.Models;
+using Catan.Shared.Networking.Dtos.Server;
+using Catan.Server.Sessions;
 
 namespace Catan.Server;
 
@@ -29,18 +31,19 @@ public static class Db
         // GAME TABLE
         cmd.CommandText = @"
             CREATE TABLE IF NOT EXISTS Game (
-                Id TEXT PRIMARY KEY,
-                user1Id TEXT,
-                user2Id TEXT,
-                user3Id TEXT,
-                user4Id TEXT,
-                WinnerId TEXT,
-                FOREIGN KEY(user1Id) REFERENCES User(Id),
-                FOREIGN KEY(user2Id) REFERENCES User(Id),
-                FOREIGN KEY(user3Id) REFERENCES User(Id),
-                FOREIGN KEY(user4Id) REFERENCES User(Id),
-                FOREIGN KEY(WinnerId) REFERENCES User(Id)
-            );";
+            Id TEXT PRIMARY KEY,
+            user1Id TEXT,
+            user2Id TEXT,
+            user3Id TEXT,
+            user4Id TEXT,
+            WinnerId TEXT,
+            Date INTEGER NOT NULL,
+            FOREIGN KEY(user1Id) REFERENCES User(Id),
+            FOREIGN KEY(user2Id) REFERENCES User(Id),
+            FOREIGN KEY(user3Id) REFERENCES User(Id),
+            FOREIGN KEY(user4Id) REFERENCES User(Id),
+            FOREIGN KEY(WinnerId) REFERENCES User(Id)
+        );";
         cmd.ExecuteNonQuery();
 
         // FRIEND TABLE
@@ -76,7 +79,7 @@ public static class Db
         );";
         cmd.ExecuteNonQuery();
 
-        // SeedTestData();
+        SeedTestData();
     }
 
     private static void SeedTestData()
@@ -305,20 +308,22 @@ public static class Db
     public static string AddGame(string? user1Id, string? user2Id, string? user3Id, string? user4Id)
     {
         var gameId = Guid.NewGuid().ToString();
+        var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         using var conn = new SqliteConnection($"Data Source={DbFile}");
         conn.Open();
         using var cmd = conn.CreateCommand();
 
         cmd.CommandText = @"
-            INSERT INTO Game (Id, user1Id, user2Id, user3Id, user4Id)
-            VALUES ($id, $p1, $p2, $p3, $p4);";
+            INSERT INTO Game (Id, user1Id, user2Id, user3Id, user4Id, Date)
+            VALUES ($id, $p1, $p2, $p3, $p4, $date);";
 
         cmd.Parameters.AddWithValue("$id", gameId);
-        cmd.Parameters.AddWithValue("$p1", string.IsNullOrEmpty(user1Id) ? (object)DBNull.Value : user1Id);
-        cmd.Parameters.AddWithValue("$p2", string.IsNullOrEmpty(user2Id) ? (object)DBNull.Value : user2Id);
-        cmd.Parameters.AddWithValue("$p3", string.IsNullOrEmpty(user3Id) ? (object)DBNull.Value : user3Id);
-        cmd.Parameters.AddWithValue("$p4", string.IsNullOrEmpty(user4Id) ? (object)DBNull.Value : user4Id);
+        cmd.Parameters.AddWithValue("$p1", (object?)user1Id ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("$p2", (object?)user2Id ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("$p3", (object?)user3Id ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("$p4", (object?)user4Id ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("$date", timestamp);
 
         cmd.ExecuteNonQuery();
         return gameId;
@@ -336,6 +341,62 @@ public static class Db
 
         cmd.ExecuteNonQuery();
     }
+
+    public static MatchHistoryResponseEntryDto[] GetMatchHistory(string userId, int limit = 10)
+    {
+        var matches = new List<MatchHistoryResponseEntryDto>();
+
+        using var conn = new SqliteConnection($"Data Source={DbFile}");
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+
+        cmd.CommandText = @"
+            SELECT user1Id, user2Id, user3Id, user4Id, WinnerId
+            FROM Game
+            WHERE user1Id = $id OR user2Id = $id OR user3Id = $id OR user4Id = $id
+            ORDER BY Date DESC
+            LIMIT $limit;";
+        cmd.Parameters.AddWithValue("$id", userId);
+        cmd.Parameters.AddWithValue("$limit", limit);
+
+        using var reader = cmd.ExecuteReader();
+        while (reader.Read())
+        {
+            var userEntries = new List<LeaderboardEntryDto>();
+
+            for (int i = 0; i < 4; i++)
+            {
+                if (reader.IsDBNull(i)) continue;
+                var uid = reader.GetString(i);
+                var username = GetUsernameById(uid);
+                var elo = GetUserElo(uid);
+
+                if (username != null && elo != null)
+                {
+                    userEntries.Add(new LeaderboardEntryDto
+                    {
+                        Username = username,
+                        Elo = elo.Value
+                    });
+                }
+            }
+
+            string winnerName = "";
+            if (!reader.IsDBNull(4))
+            {
+                winnerName = GetUsernameById(reader.GetString(4)) ?? "";
+            }
+
+            matches.Add(new MatchHistoryResponseEntryDto
+            {
+                UserEntries = userEntries.ToArray(),
+                Winner = winnerName
+            });
+        }
+
+        return matches.ToArray();
+    }
+
 
     // ========================
     // FRIEND
@@ -413,6 +474,32 @@ public static class Db
 
         return friends;
     }
+
+    public static FriendListResponseEntryDto[] GetFriendsWithStatusFiltered( string userId, Func<string, ClientSession?> sessionLookup)
+    {
+        var entries = new List<FriendListResponseEntryDto>();
+
+        foreach (var fid in GetFriends(userId))
+        {
+            if (BlockExists(userId, fid) || BlockExists(fid, userId))
+                continue;
+
+            var username = GetUsernameById(fid);
+            if (username == null)
+                continue;
+
+            var friendSession = sessionLookup(fid);
+
+            entries.Add(new FriendListResponseEntryDto
+            {
+                Username = username,
+                Online = friendSession != null
+            });
+        }
+
+        return entries.ToArray();
+    }
+
 
     // ========================
     // FRIEND REQUESTS

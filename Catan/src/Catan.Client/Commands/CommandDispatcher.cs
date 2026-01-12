@@ -21,7 +21,6 @@ public class CommandDispatcher
 
         if (_handlers.TryGetValue(command, out var handler))
             return handler.Execute(args);
-
         return Task.CompletedTask;
     }
 }

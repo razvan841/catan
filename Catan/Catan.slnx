@@ -1,7 +1,6 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/Catan.Client/Catan.Client.csproj" />
-    <Project Path="src/Catan.Infrastructure/Catan.Infrastructure.csproj" />
     <Project Path="src/Catan.Server/Catan.Server.csproj" />
     <Project Path="src/Catan.Shared/Catan.Shared.csproj" />
     <Project Path="src/ChessSolution/ChessClient/ChessClient.csproj" />

@@ -1,0 +1,58 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Catan.Client.UI.ProfileView">
+
+    <Grid RowDefinitions="Auto,*"
+          ColumnDefinitions="*,*"
+          ColumnSpacing="10"
+          RowSpacing="10">
+
+        <!-- HEADER -->
+        <StackPanel Grid.ColumnSpan="2"
+                    Orientation="Horizontal"
+                    Spacing="10">
+
+            <Button Content="← Back"
+                    Click="Back_Click"/>
+
+            <TextBlock Text="Profile"
+                       FontWeight="Bold"
+                       FontSize="16"/>
+        </StackPanel>
+
+        <!-- MATCH HISTORY -->
+        <Border Grid.Row="1"
+                BorderBrush="Gray"
+                BorderThickness="1"
+                Padding="6">
+
+            <StackPanel>
+                <TextBlock Text="Match History"
+                           FontWeight="Bold"
+                           Margin="0,0,0,5"/>
+
+                <ListBox x:Name="MatchHistoryList"/>
+            </StackPanel>
+        </Border>
+
+        <!-- FRIENDS -->
+        <Border Grid.Row="1"
+                Grid.Column="1"
+                BorderBrush="Gray"
+                BorderThickness="1"
+                Padding="6">
+
+            <StackPanel>
+                <TextBlock Text="Friends"
+                           FontWeight="Bold"
+                           Margin="0,0,0,5"/>
+
+                <ListBox x:Name="FriendList"/>
+
+                <TextBlock x:Name="StatusText"
+                           Margin="0,10,0,0"
+                           FontStyle="Italic"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

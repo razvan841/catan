@@ -92,6 +92,10 @@ public static class MessageHandler
                 await HandleFriendListRequestAsync(clientMessage, session);
                 break;
 
+            case MessageType.ProfileRequest:
+                await HandleProfileRequestAsync(clientMessage, session);
+                break;
+
             default:
                 Console.WriteLine($"Unknown message type: {clientMessage.Type}");
                 break;
@@ -710,6 +714,30 @@ public static class MessageHandler
         await session.Stream.WriteAsync(data);
     }
 
+    public static async Task HandleProfileRequestAsync(ClientMessage message, ClientSession session)
+    {
+        if (session.Username == null)
+            return;
+
+        var userId = Db.GetUserId(session.Username);
+        if (userId == null)
+            return;
+
+        var response = new ProfileResponseDto
+        {
+            Success = true,
+            FriendEntries = Db.GetFriendsWithStatusFiltered(userId, SessionManager.GetById),
+            MatchEntries = Db.GetMatchHistory(userId)
+        };
+
+        var data = JsonMessageSerializer.Serialize(new ServerMessage
+        {
+            Type = MessageType.ProfileResponse,
+            Payload = response
+        });
+
+        await session.Stream.WriteAsync(data);
+    }
 
     private static async Task SendResponseAsync(ClientSession session, ServerMessage msg)
     {
