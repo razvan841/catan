@@ -1,4 +1,8 @@
 Refactor Server component
+Fix disconnect button
+Fix multiple logins
+Implement new game server side
+Redo new game frontend
 Improve Client UI
 Add lobby commands: block, accept game, decline game
 Elo calculation algorithm

@@ -43,6 +43,7 @@ public class ServerMessageHandlers
         router.Register(MessageType.GroupMessageResponse, HandleGroupMessageResponse);
         router.Register(MessageType.GroupMessageIncoming, HandleGroupMessageIncoming);
         router.Register(MessageType.FriendListResponse, HandleFriendListResponse);
+        router.Register(MessageType.UnfriendResponse, HandleUnfriendResponse);
 
         router.Register(MessageType.NewGameResponse, HandleNewGameResponse);
 
@@ -155,6 +156,11 @@ public class ServerMessageHandlers
     {
         var dto = ((JsonElement)msg.Payload!).Deserialize<FriendListResponseDto>()!;
         Dispatcher.UIThread.Post(() => _ui.OnFriendListResponse(dto));
+    }
+    private void HandleUnfriendResponse(ServerMessage msg)
+    {
+        var dto = ((JsonElement)msg.Payload!).Deserialize<UnfriendResponseDto>()!;
+        Dispatcher.UIThread.Post(() => _ui.OnUnfriendResponse(dto));
     }
     private void HandleNewGameResponse(ServerMessage msg)
     {

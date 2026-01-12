@@ -114,6 +114,11 @@ public partial class MainWindow
             AppendChatLine($"  {entry.Username} - {status}", color);
         }
     }
+    public void OnUnfriendResponse(UnfriendResponseDto dto)
+    {
+        if (!dto.Success)
+            AppendChatLine($"[Unfriend Error] {dto.Message}", "error");
+    }
 
     public void OnNewGameResponse(NewGameResponseDto dto)
     {

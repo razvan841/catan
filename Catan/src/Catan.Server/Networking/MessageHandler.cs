@@ -84,6 +84,10 @@ public static class MessageHandler
                 await HandleUnblockRequestAsync(clientMessage, session);
                 break;
 
+            case MessageType.UnfriendRequest:
+                await HandleUnfriendRequestAsync(clientMessage, session);
+                break;
+
             case MessageType.FriendListRequest:
                 await HandleFriendListRequestAsync(clientMessage, session);
                 break;
@@ -614,7 +618,50 @@ public static class MessageHandler
             Payload = new
             {
                 Success = success,
-                TargetUsername = dto.TargetUsername,
+                Message = success ? "User unblocked successfully." : "User was not blocked."
+            }
+        };
+
+        var data = JsonMessageSerializer.Serialize(response);
+        await session.Stream.WriteAsync(data);
+    }
+
+    public static async Task HandleUnfriendRequestAsync(ClientMessage message, ClientSession session)
+    {
+        var dto = ((JsonElement)message.Payload!).Deserialize<UnblockRequestDto>()!;
+        if (session.Username == null)
+            return;
+
+        string? unfrienderId = Db.GetUserId(session.Username);
+        string? unfriendId = Db.GetUserId(dto.TargetUsername);
+
+        if (unfrienderId == null)
+            return;
+        if (unfriendId == null)
+        {
+            var response1 = new ServerMessage
+            {
+                Type = MessageType.UnfriendResponse,
+                Payload = new
+                {
+                    Success = false,
+                    Message = "User does not exist."
+                }
+            };
+
+            var data1 = JsonMessageSerializer.Serialize(response1);
+            await session.Stream.WriteAsync(data1);
+            return;
+        }
+
+        bool success = Db.RemoveFriendship(unfrienderId, unfriendId);
+
+        var response = new ServerMessage
+        {
+            Type = MessageType.UnfriendResponse,
+            Payload = new
+            {
+                Success = success,
                 Message = success ? "User unblocked successfully." : "User was not blocked."
             }
         };

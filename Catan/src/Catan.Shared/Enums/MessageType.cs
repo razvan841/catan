@@ -44,5 +44,7 @@ public enum MessageType
     UnblockRequest,
     UnblockResponse,
     FriendListRequest,
-    FriendListResponse
+    FriendListResponse,
+    UnfriendRequest,
+    UnfriendResponse
 }
