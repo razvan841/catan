@@ -51,6 +51,8 @@ public class ServerMessageHandlers
         router.Register(MessageType.MatchFound, HandleMatchFound);
         router.Register(MessageType.MatchCanceled, HandleMatchCanceled);
         router.Register(MessageType.MatchStart, HandleMatchStart);
+
+        router.Register(MessageType.ProfileResponse, HandleProfileResponse);
     }
 
     private void HandleLogin(ServerMessage msg)
@@ -186,5 +188,11 @@ public class ServerMessageHandlers
     {
         var dto = ((JsonElement)msg.Payload!).Deserialize<MatchStartDto>()!;
         Dispatcher.UIThread.Post(() => _ui.OnMatchStart(dto));
+    }
+
+    private void HandleProfileResponse(ServerMessage msg)
+    {
+        var dto = ((JsonElement)msg.Payload!).Deserialize<ProfileResponseDto>()!;
+        Dispatcher.UIThread.Post(() => _ui.OnProfileResponse(dto));
     }
 }

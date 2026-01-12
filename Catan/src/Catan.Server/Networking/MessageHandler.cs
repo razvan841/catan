@@ -735,7 +735,7 @@ public static class MessageHandler
             Type = MessageType.ProfileResponse,
             Payload = response
         });
-
+        Console.WriteLine("Sent profile response");
         await session.Stream.WriteAsync(data);
     }
 

@@ -79,7 +79,7 @@ public static class Db
         );";
         cmd.ExecuteNonQuery();
 
-        SeedTestData();
+        // SeedTestData();
     }
 
     private static void SeedTestData()
@@ -90,19 +90,20 @@ public static class Db
         using var cmd = conn.CreateCommand();
 
         var userIds = new List<string>();
-
         for (int i = 1; i <= 8; i++)
         {
-            string username = $"test-user{i}";
+            string username = $"test-{i}";
             string password = "password";
             string userId = Guid.NewGuid().ToString();
             int elo = Rng.Next(800, 1500);
 
-            cmd.CommandText = "INSERT INTO User (Id, Username, Password, Elo) VALUES ($id, $username, $password, $elo)";
+            cmd.CommandText = @"
+                INSERT INTO User (Id, Username, Password, Elo)
+                VALUES ($id, $username, $password, $elo)";
             cmd.Parameters.Clear();
             cmd.Parameters.AddWithValue("$id", userId);
             cmd.Parameters.AddWithValue("$username", username);
-            cmd.Parameters.AddWithValue("$password", BCrypt.Net.BCrypt.HashPassword(password));
+            cmd.Parameters.AddWithValue("$123", BCrypt.Net.BCrypt.HashPassword(password));
             cmd.Parameters.AddWithValue("$elo", elo);
             cmd.ExecuteNonQuery();
 
@@ -124,8 +125,47 @@ public static class Db
             }
         }
 
-        Console.WriteLine("Test users and friendships created.");
+        int gameCount = 30;
+
+        for (int g = 0; g < gameCount; g++)
+        {
+            int playerCount = Rng.Next(2, 5);
+            var players = userIds
+                .OrderBy(_ => Rng.Next())
+                .Take(playerCount)
+                .ToArray();
+
+            string? p1 = players.ElementAtOrDefault(0);
+            string? p2 = players.ElementAtOrDefault(1);
+            string? p3 = players.ElementAtOrDefault(2);
+            string? p4 = players.ElementAtOrDefault(3);
+
+            string winner = players[Rng.Next(players.Length)];
+            long date = DateTimeOffset.UtcNow
+                .AddDays(-Rng.Next(0, 60))
+                .ToUnixTimeSeconds();
+
+            cmd.CommandText = @"
+                INSERT INTO Game
+                    (Id, user1Id, user2Id, user3Id, user4Id, WinnerId, Date)
+                VALUES
+                    ($id, $p1, $p2, $p3, $p4, $winner, $date);";
+
+            cmd.Parameters.Clear();
+            cmd.Parameters.AddWithValue("$id", Guid.NewGuid().ToString());
+            cmd.Parameters.AddWithValue("$p1", (object?)p1 ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("$p2", (object?)p2 ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("$p3", (object?)p3 ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("$p4", (object?)p4 ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("$winner", winner);
+            cmd.Parameters.AddWithValue("$date", date);
+
+            cmd.ExecuteNonQuery();
+        }
+
+        Console.WriteLine("Test users, friendships, and games created.");
     }
+
 
     // ========================
     // USER METHODS
