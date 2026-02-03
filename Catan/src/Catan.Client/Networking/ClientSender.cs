@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using Catan.Client.Networking;
 using Catan.Shared.Networking.Messages;
 
 namespace Catan.Client.Networking;

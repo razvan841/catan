@@ -46,6 +46,7 @@ public class ServerMessageHandlers
         router.Register(MessageType.UnfriendResponse, HandleUnfriendResponse);
 
         router.Register(MessageType.NewGameResponse, HandleNewGameResponse);
+        router.Register(MessageType.NewGameFound, HandleNewGameFound);
 
         router.Register(MessageType.QueueResponse, HandleQueueResponse);
         router.Register(MessageType.MatchFound, HandleMatchFound);
@@ -168,6 +169,11 @@ public class ServerMessageHandlers
     {
         var dto = ((JsonElement)msg.Payload!).Deserialize<NewGameResponseDto>()!;
         Dispatcher.UIThread.Post(() => _ui.OnNewGameResponse(dto));
+    }
+    private void HandleNewGameFound(ServerMessage msg)
+    {
+        var dto = ((JsonElement)msg.Payload!).Deserialize<MatchFoundDto>()!;
+        Dispatcher.UIThread.Post(() => _ui.OnNewGameFound(dto));
     }
     private void HandleQueueResponse(ServerMessage msg)
     {

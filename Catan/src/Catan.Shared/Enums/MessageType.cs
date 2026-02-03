@@ -48,5 +48,6 @@ public enum MessageType
     UnfriendRequest,
     UnfriendResponse,
     ProfileRequest,
-    ProfileResponse
+    ProfileResponse,
+    NewGameFound
 }

@@ -1,6 +1,5 @@
 using System;
 using Catan.Shared.Models;
-using Catan.Client.Networking;
 using Catan.Shared.Networking.Dtos.Server;
 
 namespace Catan.Client.UI;
@@ -139,6 +138,19 @@ public partial class MainWindow
         AppendChatLine($"Joined the queue! Waiting for more players...", "system");
     }
     public async void OnMatchFound(MatchFoundDto dto)
+    {
+        if (_matchDialog != null)
+            return;
+
+        _matchDialog = new MatchFoundWindow();
+
+        bool accepted = await _matchDialog.ShowDialog<bool>(this);
+
+        _matchDialog = null;
+
+        await _matchmakingClient.SendMatchResponse(accepted, dto.MatchId);
+    }
+    public async void OnNewGameFound(MatchFoundDto dto)
     {
         if (_matchDialog != null)
             return;

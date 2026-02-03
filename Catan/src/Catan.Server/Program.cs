@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
-using Catan.Server;
 using Catan.Server.Networking.Tcp;
 
 class Program

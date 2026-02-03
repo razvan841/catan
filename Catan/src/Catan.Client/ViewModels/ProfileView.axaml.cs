@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using Avalonia.Controls;
-using Avalonia.Media;
 using Catan.Shared.Networking.Dtos.Server;
 
 namespace Catan.Client.UI;

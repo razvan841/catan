@@ -1,15 +1,17 @@
 Refactor Server component
-Fix disconnect button
 Fix multiple logins
 Implement new game server side
+Implement new game client side
+When match starting => client redirect to game window
 Redo new game frontend
 Improve Client UI
-Add lobby commands: block, accept game, decline game
 Elo calculation algorithm
+Security implementation (KEM/DEM with MAC)
+
 Chess game
-Security implementation
 AI player for chess game, maybe for catan also
 Put the games on the Server
+
 Add unit tests for the client and Server
 Complete unit tests for catan
 Add unit tests for chess

@@ -555,6 +555,7 @@ public static class MessageHandler
 
         if (session.Username == null)
             return;
+        
     }
     public static async Task HandleBlockRequestAsync(ClientMessage message, ClientSession session)
     {
