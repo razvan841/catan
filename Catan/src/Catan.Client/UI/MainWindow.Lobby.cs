@@ -1,6 +1,7 @@
 using System;
 using Catan.Shared.Models;
 using Catan.Shared.Networking.Dtos.Server;
+using Avalonia.Controls;
 
 namespace Catan.Client.UI;
 
@@ -185,7 +186,27 @@ public partial class MainWindow
         _matchDialog?.Close(true);
         _matchDialog = null;
 
-        AppendChatLine("Match starting in 3 seconds!", "system");
+        AppendChatLine("Match starting soon...", "system");
+
+        Window? gameWindow = dto.Game switch
+        {
+            "Catan" => new CatanView(),
+            "Chess" => new CatanView(),
+            _ => null
+        };
+
+        if (gameWindow == null)
+        {
+            AppendChatLine($"[Error] Unknown game type: {dto.Game}", "error");
+            return;
+        }
+
+        this.Hide();
+        gameWindow.Show();
+        gameWindow.Closed += (_, __) =>
+        {
+            this.Show();
+        };
     }
 
     public void OnProfileResponse(ProfileResponseDto dto)

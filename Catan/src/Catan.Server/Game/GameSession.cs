@@ -1,5 +1,6 @@
 using Catan.Server.Sessions;
 using Catan.Shared.Enums;
+using Catan.Shared.Networking.Dtos.Server;
 using Catan.Shared.Networking.Messages;
 using Catan.Shared.Networking.Serialization;
 
@@ -29,17 +30,18 @@ public class GameSession
         }
     }
 
-    public async Task StartAsync()
+    public async Task StartAsync(string game)
     {
         State = GameState.Running;
 
         await BroadcastAsync(new ServerMessage
         {
             Type = MessageType.MatchStart,
-            Payload = new
+            Payload = new MatchStartDto
             {
-                GameId = Id,
-                Players = Players.Select(p => p.Username).ToArray()
+                MatchId = Id,
+                Players = Players.Select(p => p.Username!).ToArray(),
+                Game = game
             }
         });
 

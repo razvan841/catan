@@ -1,0 +1,90 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Catan.Client.UI.ChessView"
+        Width="1100"
+        Height="700"
+        WindowStartupLocation="CenterScreen"
+        Background="#E6F3FF">
+
+    <Grid ColumnDefinitions="*,350"
+          RowDefinitions="*">
+
+        <!-- ===== LEFT SIDE (GAME AREA) ===== -->
+        <Border Grid.Column="0"
+                Margin="10"
+                Background="#B8DFFF"
+                CornerRadius="12"
+                BorderBrush="#8FC7FF"
+                BorderThickness="2">
+
+            <TextBlock Text="CHESS GAME AREA"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       FontSize="28"
+                       FontWeight="Bold"
+                       Foreground="#1E3A8A"/>
+        </Border>
+
+        <!-- ===== RIGHT PANEL (Terminal + Chat) ===== -->
+        <Border Grid.Column="1"
+                Background="#0B132B"
+                Padding="10">
+
+            <Grid RowDefinitions="*,180">
+
+                <!-- TERMINAL / LOG -->
+                <Border Grid.Row="0"
+                        Background="#06101F"
+                        CornerRadius="8"
+                        Padding="8">
+
+                    <TextBox x:Name="TerminalBox"
+                             AcceptsReturn="True"
+                             IsReadOnly="True"
+                             TextWrapping="Wrap"
+                             Foreground="White"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             Watermark="Game logs will appear here..."/>
+                </Border>
+
+                <!-- CHAT -->
+                <Border Grid.Row="1"
+                        Margin="0,10,0,0"
+                        Background="#06101F"
+                        CornerRadius="8"
+                        Padding="8">
+
+                    <StackPanel Spacing="8">
+
+                        <TextBlock Text="Chat"
+                                   Foreground="White"
+                                   FontWeight="Bold"/>
+
+                        <TextBox x:Name="ChatMessagesBox"
+                                 AcceptsReturn="True"
+                                 IsReadOnly="True"
+                                 Height="90"
+                                 TextWrapping="Wrap"
+                                 Foreground="White"
+                                 Background="#0B132B"
+                                 BorderThickness="0"/>
+
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBox x:Name="ChatInputBox"
+                                     Watermark="Type a message..."
+                                     Width="260"/>
+
+                            <Button Content="Send"
+                                    Width="60"
+                                    Background="#22C55E"
+                                    Foreground="White"/>
+                        </StackPanel>
+
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+    </Grid>
+</Window>

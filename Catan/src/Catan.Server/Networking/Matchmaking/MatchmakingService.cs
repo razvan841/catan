@@ -196,7 +196,7 @@ public static class MatchmakingService
         }
 
         var game = new GameSession(match.Players);
-        await game.StartAsync();
+        await game.StartAsync(dto.Game);
     }
 
     // ============================

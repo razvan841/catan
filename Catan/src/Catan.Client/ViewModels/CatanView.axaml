@@ -1,0 +1,139 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Catan.Client.UI.CatanView"
+        Width="1200"
+        Height="760"
+        WindowStartupLocation="CenterScreen"
+        Background="#7FB7E8">
+
+    <!-- More space for bottom = chat/log is shorter -->
+    <Grid ColumnDefinitions="*,360"
+          RowDefinitions="*,160">
+
+        <!-- ================== MAIN BOARD AREA (LEFT) ================== -->
+        <Border Grid.Column="0"
+                Grid.Row="0"
+                Margin="10"
+                Background="#7FB7E8">
+
+            <Border Background="#B8DFFF"
+                    CornerRadius="16"
+                    BorderBrush="#8FC7FF"
+                    BorderThickness="2"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Width="650"
+                    Height="650">
+
+                <TextBlock Text="CATAN BOARD AREA"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           FontSize="26"
+                           FontWeight="Bold"
+                           Foreground="#1E3A8A"/>
+            </Border>
+        </Border>
+
+        <!-- ================== RIGHT PANEL (MERGED CHAT + LOG) ================== -->
+        <Border Grid.Column="1"
+                Grid.Row="0"
+                Margin="10"
+                Background="#D9E9F7"
+                CornerRadius="12"
+                Padding="8">
+
+            <Grid RowDefinitions="30,*,40">
+
+                <!-- Top Bar (No Open Stats Button) -->
+                <TextBlock Grid.Row="0"
+                           Text="Game Log and Chat"
+                           FontWeight="Bold"
+                           Foreground="#1E3A8A"
+                           VerticalAlignment="Center"/>
+
+                <!-- Shorter merged Chat + Log -->
+                <Border Grid.Row="1"
+                        Background="White"
+                        CornerRadius="8"
+                        Padding="6">
+
+                    <TextBox x:Name="ChatAndLogBox"
+                             AcceptsReturn="True"
+                             IsReadOnly="True"
+                             TextWrapping="Wrap"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             Watermark="Game events and chat will appear here..."/>
+                </Border>
+
+                <!-- Input + Send on SAME LINE -->
+                <StackPanel Grid.Row="2"
+                            Orientation="Horizontal"
+                            Spacing="8"
+                            Margin="0,6,0,0">
+
+                    <TextBox x:Name="ChatInputBox"
+                             Watermark="Type a message..."
+                             HorizontalAlignment="Stretch"/>
+
+                    <Button Content="Send"
+                            Width="80"
+                            Background="#22C55E"
+                            Foreground="White"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ================== BOTTOM BAR (LEFT) → 4 EQUAL RECTANGLES ================== -->
+        <Border Grid.Column="0"
+                Grid.Row="1"
+                Margin="10"
+                Background="#E6F3FF"
+                CornerRadius="10"
+                Padding="8">
+
+            <UniformGrid Columns="4" Rows="1">
+                <Border Background="#0B132B" CornerRadius="8" Margin="0,0,10,0"/>
+                <Border Background="#0B132B" CornerRadius="8" Margin="0,0,10,0"/>
+                <Border Background="#0B132B" CornerRadius="8" Margin="0,0,10,0"/>
+                <Border Background="#0B132B" CornerRadius="8"/>
+            </UniformGrid>
+        </Border>
+
+        <!-- ================== BOTTOM RIGHT → 5 RECTANGLES STACKED VERTICALLY ================== -->
+        <Border Grid.Column="1"
+                Grid.Row="1"
+                Margin="10"
+                Background="#D9E9F7"
+                CornerRadius="10"
+                Padding="8">
+
+            <StackPanel Orientation="Vertical"
+                        HorizontalAlignment="Stretch"
+                        Spacing="6">
+
+                <Border Height="28"
+                        Background="#1F2937"
+                        CornerRadius="6"/>
+
+                <Border Height="28"
+                        Background="#1F2937"
+                        CornerRadius="6"/>
+
+                <Border Height="28"
+                        Background="#1F2937"
+                        CornerRadius="6"/>
+
+                <Border Height="28"
+                        Background="#1F2937"
+                        CornerRadius="6"/>
+
+                <Border Height="28"
+                        Background="#1F2937"
+                        CornerRadius="6"/>
+
+            </StackPanel>
+        </Border>
+
+    </Grid>
+</Window>
