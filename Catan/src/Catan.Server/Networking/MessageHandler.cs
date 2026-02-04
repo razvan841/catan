@@ -35,6 +35,10 @@ public static class MessageHandler
             case MessageType.QueueRequest:
                 await HandleQueueAsync(clientMessage, session);
                 break;
+            
+            case MessageType.DequeueRequest:
+                await HandleDequeueAsync(clientMessage, session);
+                break;
 
             case MessageType.MatchResponse:
                 await HandleMatchResponse(clientMessage, session);
@@ -180,11 +184,27 @@ public static class MessageHandler
     private static async Task HandleQueueAsync(ClientMessage message, ClientSession session)
     {
         var dto = ((JsonElement)message.Payload!).Deserialize<QueueRequestDto>()!;
-        bool success = Matchmaking.MatchmakingService.TryEnqueue(session, out string reason);
+        bool success = Matchmaking.MatchmakingService.TryEnqueue(session, dto.Game, out string reason);
 
         await SendResponseAsync(session, new ServerMessage
         {
             Type = MessageType.QueueResponse,
+            Payload = new QueueResponseDto
+            {
+                Success = success,
+                Message = reason
+            }
+        });
+    }
+
+    private static async Task HandleDequeueAsync(ClientMessage message, ClientSession session)
+    {
+        var dto = ((JsonElement)message.Payload!).Deserialize<DequeueRequestDto>()!;
+        bool success = Matchmaking.MatchmakingService.TryDequeue(session, dto.Game, out string reason);
+
+        await SendResponseAsync(session, new ServerMessage
+        {
+            Type = MessageType.DequeueResponse,
             Payload = new QueueResponseDto
             {
                 Success = success,

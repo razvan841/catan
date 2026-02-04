@@ -8,15 +8,15 @@ using Catan.Shared.Enums;
 
 namespace Catan.Client.Commands;
 
-public class QueueCommand : ICommandHandler
+public class DequeueCommand : ICommandHandler
 {
     private readonly ClientSender _sender;
     private readonly ClientSession _session;
     private readonly MainWindow _ui;
 
-    public string[] Aliases => new[] { "queue", "q" };
+    public string[] Aliases => new[] { "dequeue", "deq" };
 
-    public QueueCommand(ClientSender sender, ClientSession session, MainWindow ui)
+    public DequeueCommand(ClientSender sender, ClientSession session, MainWindow ui)
     {
         _sender = sender;
         _session = session;
@@ -27,7 +27,7 @@ public class QueueCommand : ICommandHandler
     {
         if (args.Length != 1)
         {
-            _ui.AppendChatLine("Usage: /queue <gameType>", "error");
+            _ui.AppendChatLine("Usage: /dequeue <gameType>", "error");
             return Task.CompletedTask;
         }
 
@@ -36,11 +36,11 @@ public class QueueCommand : ICommandHandler
             _ui.AppendChatLine("Unsupported game!", "error");
             return Task.CompletedTask;
         }
-
+        
         return _sender.SendAsync(new ClientMessage
         {
-            Type = MessageType.QueueRequest,
-            Payload = new QueueRequestDto
+            Type = MessageType.DequeueRequest,
+            Payload = new DequeueRequestDto
             {
                 Username = _session.Username!,
                 Game = args[0]

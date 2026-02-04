@@ -70,7 +70,7 @@ public partial class MainWindow
         });
     }
 
-    private async void Queue_Click(object? sender, RoutedEventArgs e)
+    private async void Queue_Click_Catan(object? sender, RoutedEventArgs e)
     {
         if (_session.Username == null)
             return;
@@ -79,7 +79,22 @@ public partial class MainWindow
             Type = MessageType.QueueRequest,
             Payload = new QueueRequestDto
             {
-                Username = _session.Username
+                Username = _session.Username,
+                Game = "Catan"
+            }
+        });
+    }
+    private async void Queue_Click_Chess(object? sender, RoutedEventArgs e)
+    {
+        if (_session.Username == null)
+            return;
+        await _sender.SendAsync(new ClientMessage
+        {
+            Type = MessageType.QueueRequest,
+            Payload = new QueueRequestDto
+            {
+                Username = _session.Username,
+                Game = "Chess"
             }
         });
     }

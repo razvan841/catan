@@ -59,7 +59,8 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Orientation="Horizontal" Spacing="10">
-                    <Button Content="Join Queue" Click="Queue_Click"/>
+                    <Button Content="Join Catan Queue" Click="Queue_Click_Catan"/>
+                    <Button Content="Join Chess Queue" Click="Queue_Click_Chess"/>
                     <Button Content="Pulse" Click="Pulse_Click"/>
                     <Button Content="Disconnect" Click="Disconnect_Click"/>
                 </StackPanel>

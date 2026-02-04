@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
 using Catan.Server.Sessions;
+using Catan.Server.Matchmaking;
 
 namespace Catan.Server.Networking.Tcp;
 
@@ -61,6 +62,7 @@ public class TcpServer
         {
             session.State = SessionState.Disconnected;
             SessionManager.Remove(session);
+            MatchmakingService.ForceDequeue(session);
             client.Close();
             Console.WriteLine($"User '{session.Id ?? session.Username ?? "Unknown"}' disconnected.");
         }

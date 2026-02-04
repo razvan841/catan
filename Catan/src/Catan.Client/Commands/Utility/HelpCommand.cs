@@ -30,7 +30,12 @@ public class HelpCommand : ICommandHandler
                 _ui.AppendChatLine("/ping or /pulse - Checks server connectivity.");
                 break;
             case "queue":
-                _ui.AppendChatLine("/queue - Joins matchmaking.");
+            case "q":
+                _ui.AppendChatLine("/queue <gameType> - Joins matchmaking queue for specific game.");
+                break;
+            case "dequeue":
+            case "deq":
+                _ui.AppendChatLine("/dequeue <gameType> - Leave the queue for specific game..");
                 break;
             case "elo":
                 _ui.AppendChatLine("/elo [usernames] - Shows Elo ratings.");

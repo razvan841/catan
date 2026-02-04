@@ -49,6 +49,7 @@ public class ServerMessageHandlers
         router.Register(MessageType.NewGameFound, HandleNewGameFound);
 
         router.Register(MessageType.QueueResponse, HandleQueueResponse);
+        router.Register(MessageType.DequeueResponse, HandleDequeueResponse);
         router.Register(MessageType.MatchFound, HandleMatchFound);
         router.Register(MessageType.MatchCanceled, HandleMatchCanceled);
         router.Register(MessageType.MatchStart, HandleMatchStart);
@@ -179,6 +180,11 @@ public class ServerMessageHandlers
     {
         var dto = ((JsonElement)msg.Payload!).Deserialize<QueueResponseDto>()!;
         Dispatcher.UIThread.Post(() => _ui.OnQueueResponse(dto));
+    }
+    private void HandleDequeueResponse(ServerMessage msg)
+    {
+        var dto = ((JsonElement)msg.Payload!).Deserialize<DequeueResponseDto>()!;
+        Dispatcher.UIThread.Post(() => _ui.OnDequeueResponse(dto));
     }
     private void HandleMatchFound(ServerMessage msg)
     {

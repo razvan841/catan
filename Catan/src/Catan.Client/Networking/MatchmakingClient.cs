@@ -15,7 +15,7 @@ public class MatchmakingClient
         _client = client;
     }
 
-    public async Task SendMatchResponse(bool accepted, Guid matchId)
+    public async Task SendMatchResponse(bool accepted, Guid matchId, string game)
     {
         if (_client == null)
             return;
@@ -26,7 +26,8 @@ public class MatchmakingClient
             Payload = new MatchResponseDto
             {
                 MatchId = matchId,
-                Accepted = accepted
+                Accepted = accepted,
+                Game = game
             }
         });
     }

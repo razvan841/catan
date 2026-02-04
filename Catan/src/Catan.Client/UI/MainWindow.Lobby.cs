@@ -137,6 +137,15 @@ public partial class MainWindow
         }
         AppendChatLine($"Joined the queue! Waiting for more players...", "system");
     }
+    public void OnDequeueResponse(DequeueResponseDto dto)
+    {
+        if (!dto.Success)
+        {
+            AppendChatLine($"[Dequeue Error] {dto.Message}", "error");
+            return;
+        }
+        AppendChatLine($"No longer in the queue!", "system");
+    }
     public async void OnMatchFound(MatchFoundDto dto)
     {
         if (_matchDialog != null)
@@ -148,20 +157,20 @@ public partial class MainWindow
 
         _matchDialog = null;
 
-        await _matchmakingClient.SendMatchResponse(accepted, dto.MatchId);
+        await _matchmakingClient.SendMatchResponse(accepted, dto.MatchId, dto.Game);
     }
     public async void OnNewGameFound(MatchFoundDto dto)
     {
         if (_matchDialog != null)
             return;
-
+        AppendChatLine("Found match!");
         _matchDialog = new MatchFoundWindow();
 
         bool accepted = await _matchDialog.ShowDialog<bool>(this);
 
         _matchDialog = null;
 
-        await _matchmakingClient.SendMatchResponse(accepted, dto.MatchId);
+        await _matchmakingClient.SendMatchResponse(accepted, dto.MatchId, dto.Game);
     }
     public void OnMatchCanceled(MatchCanceledDto dto)
     {
@@ -176,7 +185,7 @@ public partial class MainWindow
         _matchDialog?.Close(true);
         _matchDialog = null;
 
-        AppendChatLine("Match starting!", "system");
+        AppendChatLine("Match starting in 3 seconds!", "system");
     }
 
     public void OnProfileResponse(ProfileResponseDto dto)
