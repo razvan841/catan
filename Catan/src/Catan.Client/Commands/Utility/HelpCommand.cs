@@ -58,6 +58,9 @@ public class HelpCommand : ICommandHandler
             case "friend":
                 _ui.AppendChatLine("/friend [username] - Send a friend request.");
                 break;
+            case "unfriend":
+                _ui.AppendChatLine("/unfriend [username] - Remove a friendship");
+                break;
             case "group":
             case "g":
                 _ui.AppendChatLine("/group - Send a message to all online friends.");

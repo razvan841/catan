@@ -13,9 +13,9 @@ namespace Catan.Client.State
 
         public TcpClientConnection? Connection { get; private set; }
 
-        public void Connect(string host, int port)
+        public async Task ConnectAsync(string host, int port)
         {
-            Connection = new TcpClientConnection(host, port);
+            Connection = await TcpClientConnection.ConnectAsync(host, port);
             UiState = ClientUiState.Auth;
         }
 

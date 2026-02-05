@@ -51,5 +51,7 @@ public enum MessageType
     ProfileResponse,
     NewGameFound,
     DequeueRequest,
-    DequeueResponse
+    DequeueResponse,
+    RsaPublicKey,
+    AesEncryptedKey
 }

@@ -44,6 +44,7 @@ public partial class MainWindow : Window
             new BlockUserCommand(_sender, this),
             new UnblockUserCommand(_sender, this),
             new GetFriendsCommand(_sender, this),
+            new UnfriendCommand(_sender, this)
         });
 
         new ServerMessageHandlers(this).Register(_router);
@@ -57,7 +58,8 @@ public partial class MainWindow : Window
     {
         try
         {
-            _connection = new TcpClientConnection("127.0.0.1", 5000);
+            _connection = await TcpClientConnection.ConnectAsync("127.0.0.1", 5000);
+
             _sender.Attach(_connection);
             _matchmakingClient.Attach(_connection);
             _session.UiState = ClientUiState.Auth;
@@ -80,17 +82,39 @@ public partial class MainWindow : Window
         {
             while (_connection != null)
             {
-                var msg = await _connection.ReceiveAsync();
-                Dispatcher.UIThread.Post(() => _router.Route(msg));
+                ServerMessage msg = null!;
+                try
+                {
+                    msg = await _connection.ReceiveAsync();
+                }
+                catch (Exception ex)
+                {
+                    Log($"Error receiving server message: {ex}");
+                    continue;
+                }
+
+                if (msg == null) continue;
+
+                Dispatcher.UIThread.Post(() =>
+                {
+                    try
+                    {
+                        _router.Route(msg);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log($"Error routing message: {ex}");
+                    }
+                });
             }
         }
-        catch
+        catch (Exception ex)
         {
             Dispatcher.UIThread.Post(() =>
             {
                 _session.UiState = ClientUiState.Disconnected;
                 UpdateUi();
-                Log("Disconnected from server.");
+                Log($"Disconnected from server: {ex}");
             });
         }
     }

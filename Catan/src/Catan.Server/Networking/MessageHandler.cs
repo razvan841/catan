@@ -1,5 +1,6 @@
 using System.Net.Sockets;
 using System.Text.Json;
+using System.Text;
 using Catan.Server.Sessions;
 using Catan.Shared.Enums;
 using Catan.Shared.Networking.Messages;
@@ -135,7 +136,6 @@ public static class MessageHandler
             return;
         }
 
-        Console.WriteLine("Adding user to DB!");
         var userId = Db.AddUser(dto.Username, dto.Password);
         session.Register(userId, dto.Username);
 
@@ -756,13 +756,28 @@ public static class MessageHandler
             Type = MessageType.ProfileResponse,
             Payload = response
         });
-        Console.WriteLine("Sent profile response");
         await session.Stream.WriteAsync(data);
     }
 
     private static async Task SendResponseAsync(ClientSession session, ServerMessage msg)
     {
-        var data = JsonMessageSerializer.Serialize(msg);
-        await session.Stream.WriteAsync(data);
+        if (!session.IsSecure || session.SharedSecret == null)
+            throw new InvalidOperationException("Cannot send before secure channel is established.");
+
+        var (aesKey, hmacKey) = CryptoHelpers.DeriveKeys(session.SharedSecret);
+
+        byte[] plaintext = JsonMessageSerializer.Serialize(msg);
+
+        byte[] iv = CryptoHelpers.GenerateRandomIV();
+        byte[] ciphertext = CryptoHelpers.EncryptAes(plaintext, aesKey, iv);
+        byte[] hmac = CryptoHelpers.ComputeHmac(ciphertext, hmacKey);
+
+        int totalLen = 16 + ciphertext.Length + 32;
+
+        await session.Stream.WriteAsync(BitConverter.GetBytes(totalLen));
+        await session.Stream.WriteAsync(iv);
+        await session.Stream.WriteAsync(ciphertext);
+        await session.Stream.WriteAsync(hmac);
     }
+
 }

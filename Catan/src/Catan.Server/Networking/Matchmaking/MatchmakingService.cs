@@ -42,7 +42,6 @@ public static class MatchmakingService
             } else
             {
                 _queue_Chess.Add(session);
-                Console.WriteLine($"Added to queue, {_queue_Chess.Count}");
 
                 if (_queue_Chess.Count >= ChessPlayers)
                     _ = CreatePendingMatchAsync(game);
@@ -101,7 +100,6 @@ public static class MatchmakingService
     private static async Task CreatePendingMatchAsync(string game)
     {
         PendingMatch match;
-        Console.WriteLine("Creating pending match for chess!");
         lock (_lock)
         {
             if (game == "Catan")
