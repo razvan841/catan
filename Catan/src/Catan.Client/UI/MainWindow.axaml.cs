@@ -43,6 +43,7 @@ public partial class MainWindow : Window
             new RejectFriendCommand(_sender, this, _session),
             new BlockUserCommand(_sender, this),
             new UnblockUserCommand(_sender, this),
+            new UnfriendCommand(_sender, this),
             new GetFriendsCommand(_sender, this),
         });
 

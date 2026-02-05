@@ -559,6 +559,18 @@ public static class MessageHandler
                     Message = $"You rejected the friend request from {dto.FromUsername}."
                 }
             });
+            var requesterSession = SessionManager.GetById(fromUserId);
+            if (requesterSession != null)
+            {
+                await SendResponseAsync(requesterSession, new ServerMessage
+                {
+                    Type = MessageType.FriendRejected,
+                    Payload = new FriendAcceptedDto
+                    {
+                        Username = session.Username
+                    }
+                });
+            }
         }
     }
 
@@ -783,7 +795,7 @@ public static class MessageHandler
             Payload = new
             {
                 Success = success,
-                Message = success ? "User unblocked successfully." : "User was not blocked."
+                Message = success ? "User unblocked successfully." : "User was not a friend in the first place!"
             }
         };
 
