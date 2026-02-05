@@ -694,7 +694,21 @@ public static class MessageHandler
         string? blockedId = Db.GetUserId(dto.TargetUsername);
 
         if (blockerId == null || blockedId == null)
+        {
+            var response1 = new ServerMessage
+            {
+                Type = MessageType.BlockResponse,
+                Payload = new
+                {
+                    Success = false,
+                    Message = "User doesn't exist!"
+                }
+            };
+
+            var data1 = JsonMessageSerializer.Serialize(response1);
+            await session.Stream.WriteAsync(data1);
             return;
+        }
 
         if (blockerId == blockedId)
         {
@@ -741,7 +755,21 @@ public static class MessageHandler
         string? blockedId = Db.GetUserId(dto.TargetUsername);
 
         if (unblockerId == null || blockedId == null)
+        {
+            var response1 = new ServerMessage
+            {
+                Type = MessageType.UnblockResponse,
+                Payload = new
+                {
+                    Success = false,
+                    Message = "User does not exist!"
+                }
+            };
+            var data1 = JsonMessageSerializer.Serialize(response1);
+            await session.Stream.WriteAsync(data1);
             return;
+        }
+            
 
         bool success = Db.RemoveBlock(unblockerId, blockedId);
 
