@@ -30,8 +30,8 @@ public class UnfriendCommand : ICommandHandler
         _ui.AppendChatLine($"Unfriended user: {args[0]}", "system");
         return _sender.SendAsync(new ClientMessage
         {
-            Type = MessageType.UnblockRequest,
-            Payload = new BlockRequestDto { TargetUsername = args[0] }
+            Type = MessageType.UnfriendRequest,
+            Payload = new UnfriendRequestDto { TargetUsername = args[0] }
         });
     }
 }

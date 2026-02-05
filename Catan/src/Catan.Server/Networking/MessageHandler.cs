@@ -6,6 +6,7 @@ using Catan.Shared.Networking.Messages;
 using Catan.Shared.Networking.Serialization;
 using Catan.Shared.Networking.Dtos.Client;
 using Catan.Shared.Networking.Dtos.Server;
+using Catan.Server.Matchmaking;
 
 namespace Catan.Server.Networking;
 
@@ -568,15 +569,110 @@ public static class MessageHandler
         if (session.Username == null)
             return;
     }
-    // TODO:
     public static async Task HandleNewGameAsync(ClientMessage message, ClientSession session)
     {
         var dto = ((JsonElement)message.Payload!).Deserialize<NewGameRequestDto>()!;
 
         if (session.Username == null)
             return;
-        
+
+        var players = new List<ClientSession> { session };
+
+        if (dto.Game == "Chess")
+        {
+            var opponentId = Db.GetUserId(dto.User1);
+            if (opponentId == null)
+            {
+                var response = new ServerMessage
+                {
+                    Type = MessageType.NewGameResponse,
+                    Payload = new
+                    {
+                        Success = false,
+                        Message = "Opponent not found!"
+                    }
+                };
+                var data = JsonMessageSerializer.Serialize(response);
+                await session.Stream.WriteAsync(data);
+                return;
+            }
+
+            var opponentSession = SessionManager.GetById(opponentId);
+            if (opponentSession == null)
+            {
+                var response = new ServerMessage
+                {
+                    Type = MessageType.NewGameResponse,
+                    Payload = new
+                    {
+                        Success = false,
+                        Message = "Opponent is not online!"
+                    }
+                };
+                var data = JsonMessageSerializer.Serialize(response);
+                await session.Stream.WriteAsync(data);
+                return;
+            }
+
+            players.Add(opponentSession);
+        }
+        else if (dto.Game == "Catan")
+        {
+            var userNames = new List<string> { dto.User1, dto.User2, dto.User3 };
+            foreach (var username in userNames)
+            {
+                var userId = Db.GetUserId(username);
+                if (userId == null)
+                {
+                    var response = new ServerMessage
+                    {
+                        Type = MessageType.NewGameResponse,
+                        Payload = new
+                        {
+                            Success = false,
+                            Message = $"Player {username} not found!"
+                        }
+                    };
+                    var data = JsonMessageSerializer.Serialize(response);
+                    await session.Stream.WriteAsync(data);
+                    return;
+                }
+
+                var playerSession = SessionManager.GetById(userId);
+                if (playerSession == null)
+                {
+                    var response = new ServerMessage
+                    {
+                        Type = MessageType.NewGameResponse,
+                        Payload = new
+                        {
+                            Success = false,
+                            Message = $"Player {username} is not online!"
+                        }
+                    };
+                    var data = JsonMessageSerializer.Serialize(response);
+                    await session.Stream.WriteAsync(data);
+                    return;
+                }
+
+                players.Add(playerSession);
+            }
+        }
+
+        var (success, reason) = await MatchmakingService.CreateCustomMatchAsync(dto.Game, players);
+
+        if (!success)
+        {
+            var failMsg = new ServerMessage
+            {
+                Type = MessageType.NewGameResponse,
+                Payload = new { Success = false, Message = reason }
+            };
+            var data = JsonMessageSerializer.Serialize(failMsg);
+            await session.Stream.WriteAsync(data);
+        }
     }
+
     public static async Task HandleBlockRequestAsync(ClientMessage message, ClientSession session)
     {
         var dto = ((JsonElement)message.Payload!).Deserialize<BlockRequestDto>()!;

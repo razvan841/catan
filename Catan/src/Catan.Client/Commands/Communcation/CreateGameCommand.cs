@@ -22,17 +22,34 @@ public class CreateGameCommand : ICommandHandler
 
     public Task Execute(string[] args)
     {
-        if (args.Length != 3)
+        if (args[0] != "Chess" && args[0] != "Catan")
         {
-            _ui.AppendChatLine("Usage: /game <user1> <user2> <user3>", "error");
+            _ui.AppendChatLine("Unsupported game!", "error");
             return Task.CompletedTask;
         }
-        _ui.AppendChatLine($"You requested a game with {args[0]}, {args[1]}, {args[2]}", "system");
-
-        return _sender.SendAsync(new ClientMessage
+        if ((args[0] == "Catan" && args.Length != 4) || (args[0] == "Chess" && args.Length != 2))
         {
-            Type = MessageType.NewGameRequest,
-            Payload = new NewGameRequestDto { User1 = args[0], User2 = args[1], User3 = args[2] }
-        });
+            _ui.AppendChatLine("Usage: /game Catan <user1> <user2> <user3> or\n/game Chess <user1>", "error");
+            return Task.CompletedTask;
+        }
+        if(args[0] == "Catan")
+        {
+            _ui.AppendChatLine($"You requested a {args[0]} game with {args[1]}, {args[2]}, {args[3]}", "system");
+            return _sender.SendAsync(new ClientMessage
+            {
+                Type = MessageType.NewGameRequest,
+                Payload = new NewGameRequestDto { Game = "Catan", User1 = args[1], User2 = args[2], User3 = args[3] }
+            });
+        } else
+        {
+            _ui.AppendChatLine($"You requested a {args[0]} game with {args[1]}", "system");
+            return _sender.SendAsync(new ClientMessage
+            {
+                Type = MessageType.NewGameRequest,
+                Payload = new NewGameRequestDto { Game = "Chess", User1 = args[1] }
+            });
+        }
+
+        
     }
 }

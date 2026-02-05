@@ -19,7 +19,7 @@ public class HelpCommand : ICommandHandler
         if (args.Length == 0)
         {
             _ui.AppendChatLine(
-                "Commands: /help, /ping, /queue, /elo, /leaderboard, /playerinfo, /clear, /m, /friend, /group, /game");
+                "Commands: /help, /ping, /queue, /elo, /leaderboard, /playerinfo, /clear, /m, /friend, /block, /group, /game");
             return Task.CompletedTask;
         }
 
@@ -57,6 +57,9 @@ public class HelpCommand : ICommandHandler
                 break;
             case "friend":
                 _ui.AppendChatLine("/friend [username] - Send a friend request.");
+                break;
+            case "unfriend":
+                _ui.AppendChatLine("/unfriend [username] - Remove a friendship");
                 break;
             case "group":
             case "g":

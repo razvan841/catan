@@ -13,6 +13,7 @@ public static class MatchmakingService
 {
     private static readonly List<ClientSession> _queue_Catan = new();
     private static readonly List<ClientSession> _queue_Chess = new();
+    private static readonly List<Guid> _custom_games = new();
     private static readonly Dictionary<Guid, PendingMatch> _pendingMatches_Catan = new();
     private static readonly Dictionary<Guid, PendingMatch> _pendingMatches_Chess = new();
     private static readonly object _lock = new();
@@ -42,8 +43,6 @@ public static class MatchmakingService
             } else
             {
                 _queue_Chess.Add(session);
-                Console.WriteLine($"Added to queue, {_queue_Chess.Count}");
-
                 if (_queue_Chess.Count >= ChessPlayers)
                     _ = CreatePendingMatchAsync(game);
             }
@@ -98,10 +97,9 @@ public static class MatchmakingService
     // Match creation
     // ============================
 
-    private static async Task CreatePendingMatchAsync(string game)
+    public static async Task CreatePendingMatchAsync(string game)
     {
         PendingMatch match;
-        Console.WriteLine("Creating pending match for chess!");
         lock (_lock)
         {
             if (game == "Catan")
@@ -144,6 +142,51 @@ public static class MatchmakingService
             await p.Stream.WriteAsync(data);
     }
 
+    public static async Task<(bool Success, string Reason)> CreateCustomMatchAsync(string game, List<ClientSession> players)
+    {
+        PendingMatch match;
+
+        lock (_lock)
+        {
+            if (game == "Catan")
+            {
+                if (players.Count < CatanPlayers)
+                    return (false, "Not enough players!");
+
+                match = new PendingMatch(players, game);
+                _pendingMatches_Catan[match.MatchId] = match;
+            }
+            else
+            {
+                if (players.Count < ChessPlayers)
+                    return (false, "Not enough players!");
+
+                match = new PendingMatch(players, game);
+                _pendingMatches_Chess[match.MatchId] = match;
+            }
+        }
+
+        var msg = new ServerMessage
+        {
+            Type = MessageType.MatchFound,
+            Payload = new MatchFoundDto
+            {
+                MatchId = match.MatchId,
+                Players = match.Players.Select(p => p.Username!).ToArray(),
+                Game = game
+            }
+        };
+
+        var data = JsonMessageSerializer.Serialize(msg);
+        Console.WriteLine(data);
+
+        foreach (var p in match.Players)
+            await p.Stream.WriteAsync(data);
+        _custom_games.Add(match.MatchId);
+        return (true, "Match created successfully");
+    }
+
+
     // ============================
     // Match response
     // ============================
@@ -168,8 +211,15 @@ public static class MatchmakingService
 
         if (!dto.Accepted)
         {
-            await CancelMatchAsync(match, dto.Game, session, $"Match canceled (player {session.Username} declined)! Returning to queue...");
-            return;
+            if(_custom_games.Contains(match.MatchId))
+            {
+                await CancelMatchAsync(match, dto.Game, session, $"Match canceled (player {session.Username} declined)!");
+                return;
+            } else
+            {
+                await CancelMatchAsync(match, dto.Game, session, $"Match canceled (player {session.Username} declined)! Returning to queue...");
+                return;
+            }
         }
 
         bool shouldStart;
@@ -216,11 +266,13 @@ public static class MatchmakingService
             {
                 if (player == declinedBy)
                     continue;
-
-                if (game == "Catan")
-                    _queue_Catan.Add(player);
-                else
-                    _queue_Chess.Add(player);
+                if(!_custom_games.Contains(match.MatchId))
+                {
+                    if (game == "Catan")
+                        _queue_Catan.Add(player);
+                    else
+                        _queue_Chess.Add(player);
+                }
             }
         }
 
