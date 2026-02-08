@@ -1,4 +1,4 @@
-internal static class BoardMappings
+public static class BoardMappings
 {
     // Which tiles does a vertex see
     internal static readonly int[][] VertexToTileAdjacencyMapping = new int[][]
@@ -188,7 +188,7 @@ internal static class BoardMappings
         new int[]{41, 45, 46, 49, 50, 53}, // 18
     };
     // Which vertexes does an edge bridge
-    internal static readonly int[][] EdgeMapping = new int[][]
+    public static readonly int[][] EdgeMapping = new int[][]
     {
         new int[]{0, 3}, // 0
         new int[]{0, 4}, // 1
