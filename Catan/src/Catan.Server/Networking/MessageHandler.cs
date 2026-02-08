@@ -121,6 +121,47 @@ public static class MessageHandler
     private static async Task HandleRegisterAsync(ClientMessage message, ClientSession session)
     {
         var dto = ((JsonElement)message.Payload!).Deserialize<RegisterRequestDto>()!;
+        if (string.IsNullOrWhiteSpace(dto.Username) || string.IsNullOrWhiteSpace(dto.Password))
+        {
+            await SendResponseAsync(session, new ServerMessage
+            {
+                Type = MessageType.RegisterResponse,
+                Payload = new RegisterResponseDto
+                {
+                    Success = false,
+                    Message = "Username and password cannot be empty"
+                }
+            });
+            return;
+        }
+
+        if (dto.Username.Length < 3 || dto.Username.Contains(" "))
+        {
+            await SendResponseAsync(session, new ServerMessage
+            {
+                Type = MessageType.RegisterResponse,
+                Payload = new RegisterResponseDto
+                {
+                    Success = false,
+                    Message = "Username must be at least 3 characters long and contain no spaces"
+                }
+            });
+            return;
+        }
+
+        if (dto.Password.Length < 8 || !dto.Password.Any(char.IsDigit))
+        {
+            await SendResponseAsync(session, new ServerMessage
+            {
+                Type = MessageType.RegisterResponse,
+                Payload = new RegisterResponseDto
+                {
+                    Success = false,
+                    Message = "Password must be at least 8 characters long and contain at least one number"
+                }
+            });
+            return;
+        }
 
         if (Db.UsernameExists(dto.Username))
         {
@@ -136,7 +177,6 @@ public static class MessageHandler
             return;
         }
 
-        Console.WriteLine("Adding user to DB!");
         var userId = Db.AddUser(dto.Username, dto.Password);
         session.Register(userId, dto.Username);
 
@@ -574,6 +614,7 @@ public static class MessageHandler
         }
     }
 
+    // TODO: 
     public static async Task HandleGroupMessageAsync(ClientMessage message, ClientSession session)
     {
         var dto = ((JsonElement)message.Payload!).Deserialize<GroupMessageRequestDto>()!;
@@ -589,6 +630,9 @@ public static class MessageHandler
             return;
 
         var players = new List<ClientSession> { session };
+        var initiatorId = Db.GetUserId(session.Username);
+        if(initiatorId == null)
+            return;
 
         if (dto.Game == "Chess")
         {
@@ -619,6 +663,22 @@ public static class MessageHandler
                     {
                         Success = false,
                         Message = "Opponent is not online!"
+                    }
+                };
+                var data = JsonMessageSerializer.Serialize(response);
+                await session.Stream.WriteAsync(data);
+                return;
+            }
+            
+            if (Db.BlockExists(initiatorId, opponentId) || Db.BlockExists(opponentId, initiatorId))
+            {
+                var response = new ServerMessage
+                {
+                    Type = MessageType.NewGameResponse,
+                    Payload = new
+                    {
+                        Success = false,
+                        Message = "You can't create a custom game with a user that you blocked or that has blocked you!"
                     }
                 };
                 var data = JsonMessageSerializer.Serialize(response);
@@ -660,6 +720,21 @@ public static class MessageHandler
                         {
                             Success = false,
                             Message = $"Player {username} is not online!"
+                        }
+                    };
+                    var data = JsonMessageSerializer.Serialize(response);
+                    await session.Stream.WriteAsync(data);
+                    return;
+                }
+                if (Db.BlockExists(initiatorId, userId) || Db.BlockExists(userId, initiatorId))
+                {
+                    var response = new ServerMessage
+                    {
+                        Type = MessageType.NewGameResponse,
+                        Payload = new
+                        {
+                            Success = false,
+                            Message = "You can't create a custom game with a user that you blocked or that has blocked you!"
                         }
                     };
                     var data = JsonMessageSerializer.Serialize(response);
