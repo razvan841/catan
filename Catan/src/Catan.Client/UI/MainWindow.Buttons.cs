@@ -4,6 +4,7 @@ using Catan.Shared.Networking.Messages;
 using Catan.Shared.Enums;
 using Avalonia.Input;
 using System;
+using System.Linq;
 
 namespace Catan.Client.UI;
 
@@ -53,6 +54,24 @@ public partial class MainWindow
             ShowErrorPopup(
                 "Invalid Input",
                 "Username and password cannot be empty."
+            );
+            return;
+        }
+
+        if (username.Length < 3 || username.Contains(" "))
+        {
+            ShowErrorPopup(
+                "Invalid Username",
+                "Username must be at least 3 characters long and contain no spaces."
+            );
+            return;
+        }
+
+        if (password.Length < 8 || !password.Any(char.IsDigit))
+        {
+            ShowErrorPopup(
+                "Invalid Password",
+                "Password must be at least 8 characters long and contain at least one number."
             );
             return;
         }
