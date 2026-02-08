@@ -49,12 +49,14 @@ public class Board
             string resource = availableResources[rand.Next(availableResources.Count)];
             tilesToPlace[resource]--;
 
+            var res = Enum.Parse<ResourceType>(resource, true);
+
             Tiles.Add(new HexTile
             {
-                Resource = resource.Equals("sand", StringComparison.OrdinalIgnoreCase) ? null : Enum.Parse<ResourceType>(resource, true),
+                Resource = res,
                 Index = i,
-                NumberToken = 0,
-                HasRobber = resource.Equals("sand", StringComparison.OrdinalIgnoreCase)
+                NumberToken = res == ResourceType.Sand ? 0 : 0, // will be assigned later
+                HasRobber = res == ResourceType.Sand
             });
         }
 
@@ -62,7 +64,7 @@ public class Board
             .SelectMany(kv => Enumerable.Repeat(kv.Key, kv.Value))
             .ToList();
 
-        if (tokensToPlace.Count != Tiles.Count(t => t.Resource != null))
+        if (tokensToPlace.Count != Tiles.Count(t => t.Resource != ResourceType.Sand))
             throw new Exception("Mismatch between non-desert tiles and tokens to place.");
 
         // Assign tokens respecting adjacency rules
@@ -74,7 +76,7 @@ public class Board
 
             foreach (var tile in Tiles)
             {
-                if (tile.Resource != null)
+                if (tile.Resource != ResourceType.Sand)
                 {
                     tile.NumberToken = shuffledTokens[tokenIndex++];
                 }
@@ -108,7 +110,6 @@ public class Board
             }
         }
 
-        // Update vertex adjacency
         Vertices.Clear();
     }
 
