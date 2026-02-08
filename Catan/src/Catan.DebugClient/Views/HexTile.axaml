@@ -2,11 +2,15 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:Catan.DebugClient.Views"
              x:Class="Catan.DebugClient.Views.HexTile"
-             x:DataType="local:HexTile"
+             x:DataType="local:HexTileModel"
              Width="100" Height="115">
+
     <Grid>
-        <Path Stroke="#6B8FB5" StrokeThickness="2" Stretch="Fill"
-              Fill="{Binding Fill}"> <!-- Now compiled binding works -->
+        <Path Stroke="#6B8FB5"
+              StrokeThickness="2"
+              Stretch="Fill"
+              Fill="{Binding Fill}">
+
             <Path.Data>
                 <PathGeometry>
                     <PathFigure StartPoint="50,0" IsClosed="True">
@@ -20,6 +24,9 @@
             </Path.Data>
         </Path>
 
-        <TextBlock Text="{Binding Label}" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
+        <TextBlock Text="{Binding Label}"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontWeight="Bold"/>
     </Grid>
 </UserControl>

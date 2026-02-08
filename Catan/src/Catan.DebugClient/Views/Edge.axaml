@@ -2,10 +2,18 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:Catan.DebugClient.Views"
              x:Class="Catan.DebugClient.Views.Edge"
-             x:DataType="local:Edge">
-    <Rectangle Width="{Binding Length}" Height="3" Fill="{Binding Fill}" RenderTransformOrigin="0,0.5">
-        <Rectangle.RenderTransform>
-            <RotateTransform Angle="{Binding Angle}"/>
-        </Rectangle.RenderTransform>
-    </Rectangle>
+             x:DataType="local:EdgeModel"
+             Width="600" Height="600">
+
+    <Canvas Width="{Binding Width, RelativeSource={RelativeSource AncestorType=UserControl}}"
+            Height="{Binding Height, RelativeSource={RelativeSource AncestorType=UserControl}}">
+        <Path Stroke="{Binding Stroke}"
+              StrokeThickness="5"
+              Stretch="None">
+            <Path.Data>
+                <LineGeometry StartPoint="{Binding StartPoint}"
+                              EndPoint="{Binding EndPoint}" />
+            </Path.Data>
+        </Path>
+    </Canvas>
 </UserControl>
