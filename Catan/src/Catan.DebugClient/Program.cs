@@ -1,7 +1,7 @@
 ﻿using Avalonia;
 using System;
 
-namespace Catan.DebugClient;
+namespace Catan.DebugClient.Views;
 
 class Program
 {

@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 
-namespace Catan.DebugClient
+namespace Catan.DebugClient.Views
 {
     public partial class HexTile : UserControl
     {

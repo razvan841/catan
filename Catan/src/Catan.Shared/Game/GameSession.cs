@@ -87,8 +87,8 @@ namespace Catan.Shared.Game
         public DevelopmentDeck DevelopmentDeck { get; }
 
         public int CurrentPlayerIndex { get; private set; }
-        public GamePhase Phase { get; private set; } = GamePhase.NotStarted;
-        public TurnPhase Turn { get; private set; } = TurnPhase.NotStarted;
+        public GamePhase Phase { get; set; } = GamePhase.NotStarted;
+        public TurnPhase Turn { get; set; } = TurnPhase.NotStarted;
         public bool PlayedDevelopmentCardThisTurn = false;
         public Player? LongestRoadOwner { get; private set; }
         public Player? LargestArmyOwner { get; private set; }

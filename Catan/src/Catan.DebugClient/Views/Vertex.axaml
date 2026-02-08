@@ -1,9 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:Catan.DebugClient"
-             x:Class="Catan.DebugClient.Vertex"
-             x:DataType="local:Vertex"
+             xmlns:local="clr-namespace:Catan.DebugClient.Views"
+             x:Class="Catan.DebugClient.Views.Vertex"
+             x:DataType="local:VertexModel"
              Width="15" Height="15">
-
     <Ellipse Fill="{Binding Fill}" Stroke="Black" StrokeThickness="1"/>
 </UserControl>

@@ -1,8 +1,10 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:local="clr-namespace:Catan.DebugClient"
+        xmlns:local="clr-namespace:Catan.DebugClient.Views"
         xmlns:shapes="clr-namespace:Avalonia.Controls.Shapes;assembly=Avalonia.Controls.Shapes"
-        x:Class="Catan.DebugClient.CatanView"
+        xmlns:vm="clr-namespace:Catan.DebugClient.Views"
+        x:Class="Catan.DebugClient.Views.CatanView"
+        x:DataType="vm:CatanViewModel"
         Width="1100"
         Height="650"
         WindowStartupLocation="CenterScreen"
@@ -639,82 +641,82 @@
 
             <!-- ================= VERTICES ================= -->
             <!-- ROW 1 vertices -->
-            <local:Vertex Canvas.Left="190" Canvas.Top="15" Fill="White"/> 
-            <local:Vertex Canvas.Left="290" Canvas.Top="15" Fill="White"/> 
-            <local:Vertex Canvas.Left="390" Canvas.Top="15" Fill="White"/>
+            <local:Vertex Canvas.Left="190" Canvas.Top="15"/> 
+            <local:Vertex Canvas.Left="290" Canvas.Top="15"/> 
+            <local:Vertex Canvas.Left="390" Canvas.Top="15"/>
 
             <!-- ROW 2 vertices -->
-            <local:Vertex Canvas.Left="142.5" Canvas.Top="43" Fill="White"/>
-            <local:Vertex Canvas.Left="242.5" Canvas.Top="43" Fill="White"/> 
-            <local:Vertex Canvas.Left="342.5" Canvas.Top="43" Fill="White"/> 
-            <local:Vertex Canvas.Left="442.5" Canvas.Top="43" Fill="White"/>
+            <local:Vertex Canvas.Left="142.5" Canvas.Top="43"/>
+            <local:Vertex Canvas.Left="242.5" Canvas.Top="43"/> 
+            <local:Vertex Canvas.Left="342.5" Canvas.Top="43"/> 
+            <local:Vertex Canvas.Left="442.5" Canvas.Top="43"/>
 
             <!-- ROW 3 vertices -->
-            <local:Vertex Canvas.Left="142.5" Canvas.Top="100" Fill="White"/>
-            <local:Vertex Canvas.Left="242.5" Canvas.Top="100" Fill="White"/> 
-            <local:Vertex Canvas.Left="342.5" Canvas.Top="100" Fill="White"/> 
-            <local:Vertex Canvas.Left="442.5" Canvas.Top="100" Fill="White"/>
+            <local:Vertex Canvas.Left="142.5" Canvas.Top="100"/>
+            <local:Vertex Canvas.Left="242.5" Canvas.Top="100"/> 
+            <local:Vertex Canvas.Left="342.5" Canvas.Top="100"/> 
+            <local:Vertex Canvas.Left="442.5" Canvas.Top="100"/>
 
             <!-- ROW 4 vertices -->
-            <local:Vertex Canvas.Left="95" Canvas.Top="128" Fill="White"/>
-            <local:Vertex Canvas.Left="195" Canvas.Top="128" Fill="White"/> 
-            <local:Vertex Canvas.Left="295" Canvas.Top="128" Fill="White"/> 
-            <local:Vertex Canvas.Left="395" Canvas.Top="128" Fill="White"/>
-            <local:Vertex Canvas.Left="495" Canvas.Top="128" Fill="White"/>
+            <local:Vertex Canvas.Left="95" Canvas.Top="128"/>
+            <local:Vertex Canvas.Left="195" Canvas.Top="128"/> 
+            <local:Vertex Canvas.Left="295" Canvas.Top="128"/> 
+            <local:Vertex Canvas.Left="395" Canvas.Top="128"/>
+            <local:Vertex Canvas.Left="495" Canvas.Top="128"/>
 
             <!-- ROW 5 vertices -->
-            <local:Vertex Canvas.Left="95" Canvas.Top="185" Fill="White"/>
-            <local:Vertex Canvas.Left="195" Canvas.Top="185" Fill="White"/> 
-            <local:Vertex Canvas.Left="295" Canvas.Top="185" Fill="White"/> 
-            <local:Vertex Canvas.Left="395" Canvas.Top="185" Fill="White"/>
-            <local:Vertex Canvas.Left="495" Canvas.Top="185" Fill="White"/>
+            <local:Vertex Canvas.Left="95" Canvas.Top="185"/>
+            <local:Vertex Canvas.Left="195" Canvas.Top="185"/> 
+            <local:Vertex Canvas.Left="295" Canvas.Top="185"/> 
+            <local:Vertex Canvas.Left="395" Canvas.Top="185"/>
+            <local:Vertex Canvas.Left="495" Canvas.Top="185"/>
 
             <!-- ROW 6 vertices -->
-            <local:Vertex Canvas.Left="47.5" Canvas.Top="213" Fill="White"/>
-            <local:Vertex Canvas.Left="147.5" Canvas.Top="213" Fill="White"/> 
-            <local:Vertex Canvas.Left="247.5" Canvas.Top="213" Fill="White"/> 
-            <local:Vertex Canvas.Left="347.5" Canvas.Top="213" Fill="White"/>
-            <local:Vertex Canvas.Left="447.5" Canvas.Top="213" Fill="White"/>
-            <local:Vertex Canvas.Left="547.5" Canvas.Top="213" Fill="White"/>
+            <local:Vertex Canvas.Left="47.5" Canvas.Top="213"/>
+            <local:Vertex Canvas.Left="147.5" Canvas.Top="213"/> 
+            <local:Vertex Canvas.Left="247.5" Canvas.Top="213"/> 
+            <local:Vertex Canvas.Left="347.5" Canvas.Top="213"/>
+            <local:Vertex Canvas.Left="447.5" Canvas.Top="213"/>
+            <local:Vertex Canvas.Left="547.5" Canvas.Top="213"/>
 
             <!-- ROW 7 vertices -->
-            <local:Vertex Canvas.Left="47.5" Canvas.Top="270" Fill="White"/>
-            <local:Vertex Canvas.Left="147.5" Canvas.Top="270" Fill="White"/> 
-            <local:Vertex Canvas.Left="247.5" Canvas.Top="270" Fill="White"/> 
-            <local:Vertex Canvas.Left="347.5" Canvas.Top="270" Fill="White"/>
-            <local:Vertex Canvas.Left="447.5" Canvas.Top="270" Fill="White"/>
-            <local:Vertex Canvas.Left="547.5" Canvas.Top="270" Fill="White"/>
+            <local:Vertex Canvas.Left="47.5" Canvas.Top="270"/>
+            <local:Vertex Canvas.Left="147.5" Canvas.Top="270"/> 
+            <local:Vertex Canvas.Left="247.5" Canvas.Top="270"/> 
+            <local:Vertex Canvas.Left="347.5" Canvas.Top="270"/>
+            <local:Vertex Canvas.Left="447.5" Canvas.Top="270"/>
+            <local:Vertex Canvas.Left="547.5" Canvas.Top="270"/>
 
             <!-- ROW 8 vertices -->
-            <local:Vertex Canvas.Left="95" Canvas.Top="298" Fill="White"/>
-            <local:Vertex Canvas.Left="195" Canvas.Top="298" Fill="White"/> 
-            <local:Vertex Canvas.Left="295" Canvas.Top="298" Fill="White"/> 
-            <local:Vertex Canvas.Left="395" Canvas.Top="298" Fill="White"/>
-            <local:Vertex Canvas.Left="495" Canvas.Top="298" Fill="White"/>
+            <local:Vertex Canvas.Left="95" Canvas.Top="298"/>
+            <local:Vertex Canvas.Left="195" Canvas.Top="298"/> 
+            <local:Vertex Canvas.Left="295" Canvas.Top="298"/> 
+            <local:Vertex Canvas.Left="395" Canvas.Top="298"/>
+            <local:Vertex Canvas.Left="495" Canvas.Top="298"/>
 
             <!-- ROW 9 vertices -->
-            <local:Vertex Canvas.Left="95" Canvas.Top="355" Fill="White"/>
-            <local:Vertex Canvas.Left="195" Canvas.Top="355" Fill="White"/> 
-            <local:Vertex Canvas.Left="295" Canvas.Top="355" Fill="White"/> 
-            <local:Vertex Canvas.Left="395" Canvas.Top="355" Fill="White"/>
-            <local:Vertex Canvas.Left="495" Canvas.Top="355" Fill="White"/>
+            <local:Vertex Canvas.Left="95" Canvas.Top="355"/>
+            <local:Vertex Canvas.Left="195" Canvas.Top="355"/> 
+            <local:Vertex Canvas.Left="295" Canvas.Top="355"/> 
+            <local:Vertex Canvas.Left="395" Canvas.Top="355"/>
+            <local:Vertex Canvas.Left="495" Canvas.Top="355"/>
 
             <!-- ROW 10 vertices -->
-            <local:Vertex Canvas.Left="142.5" Canvas.Top="383" Fill="White"/>
-            <local:Vertex Canvas.Left="242.5" Canvas.Top="383" Fill="White"/> 
-            <local:Vertex Canvas.Left="342.5" Canvas.Top="383" Fill="White"/> 
-            <local:Vertex Canvas.Left="442.5" Canvas.Top="383" Fill="White"/>
+            <local:Vertex Canvas.Left="142.5" Canvas.Top="383"/>
+            <local:Vertex Canvas.Left="242.5" Canvas.Top="383"/> 
+            <local:Vertex Canvas.Left="342.5" Canvas.Top="383"/> 
+            <local:Vertex Canvas.Left="442.5" Canvas.Top="383"/>
 
             <!-- ROW 11 vertices -->
-            <local:Vertex Canvas.Left="142.5" Canvas.Top="440" Fill="White"/>
-            <local:Vertex Canvas.Left="242.5" Canvas.Top="440" Fill="White"/> 
-            <local:Vertex Canvas.Left="342.5" Canvas.Top="440" Fill="White"/> 
-            <local:Vertex Canvas.Left="442.5" Canvas.Top="440" Fill="White"/>
+            <local:Vertex Canvas.Left="142.5" Canvas.Top="440"/>
+            <local:Vertex Canvas.Left="242.5" Canvas.Top="440"/> 
+            <local:Vertex Canvas.Left="342.5" Canvas.Top="440"/> 
+            <local:Vertex Canvas.Left="442.5" Canvas.Top="440"/>
 
             <!-- ROW 12 vertices -->
-            <local:Vertex Canvas.Left="190" Canvas.Top="468" Fill="White"/> 
-            <local:Vertex Canvas.Left="290" Canvas.Top="468" Fill="White"/> 
-            <local:Vertex Canvas.Left="390" Canvas.Top="468" Fill="White"/>
+            <local:Vertex Canvas.Left="190" Canvas.Top="468"/> 
+            <local:Vertex Canvas.Left="290" Canvas.Top="468"/> 
+            <local:Vertex Canvas.Left="390" Canvas.Top="468"/>
 
             <!-- ================= PORTS ================= -->
             <local:Port Canvas.Left="130" Canvas.Top="0" Fill="LightBlue" Label="3:1"/>
@@ -767,10 +769,9 @@
                             Padding="6">
 
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
-                            <TextBlock x:Name="GameLogBox"
+                            <TextBlock Text="{Binding GameLog}"
                                        TextWrapping="Wrap"
-                                       Foreground="Black"
-                                       Text="player3 rolled a 7!"/>
+                                       Foreground="Black"/>
                         </ScrollViewer>
                     </Border>
                 </Grid>
@@ -785,69 +786,69 @@
                     <Grid RowDefinitions="*,*,*,*" RowSpacing="6">
 
                         <!-- PLAYER 1 -->
-                        <Border x:Name="PlayerPanel1" Background="#CFCFCF" CornerRadius="6" Padding="8" Grid.Row="0">
+                        <Border x:Name="PlayerPanel1" Background="#CFCFCF" CornerRadius="6" Padding="8" Grid.Row="0" BorderThickness="2" BorderBrush="{Binding Player1Border}">
                             <Grid ColumnDefinitions="80,*">
-                                <TextBlock x:Name="PlayerName1" Text="Player1" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Player1Name}" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"/>
                                 <Grid Grid.Column="1" ColumnDefinitions="*,*,*,*" RowDefinitions="Auto,Auto">
                                     <TextBlock Text="Cards" Grid.Column="0" Grid.Row="0" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center"/>
-                                    <TextBlock x:Name="Player1Cards" Text="0" Grid.Column="0" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Player1Cards}" Grid.Column="0" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
                                     <TextBlock Text="Dev Cards" Grid.Column="1" Grid.Row="0" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center"/>
-                                    <TextBlock x:Name="Player1DevCards" Text="0" Grid.Column="1" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Player1DevCards}" Grid.Column="1" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
                                     <TextBlock Text="Knights" Grid.Column="2" Grid.Row="0" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center"/>
-                                    <TextBlock x:Name="Player1Knights" Text="0" Grid.Column="2" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Player1Knights}" Grid.Column="2" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
                                     <TextBlock Text="Points" Grid.Column="3" Grid.Row="0" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center"/>
-                                    <TextBlock x:Name="Player1Points" Text="0" Grid.Column="3" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Player1Points}" Grid.Column="3" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
                                 </Grid>
                             </Grid>
                         </Border>
 
                         <!-- PLAYER 2 -->
-                        <Border x:Name="PlayerPanel2" Background="#CFCFCF" CornerRadius="6" Padding="8" Grid.Row="1">
+                        <Border x:Name="PlayerPanel2" Background="#CFCFCF" CornerRadius="6" Padding="8" Grid.Row="1" BorderThickness="2" BorderBrush="{Binding Player2Border}">
                             <Grid ColumnDefinitions="80,*">
-                                <TextBlock x:Name="PlayerName2" Text="Player2" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Player2Name}" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"/>
                                 <Grid Grid.Column="1" ColumnDefinitions="*,*,*,*" RowDefinitions="Auto,Auto">
                                     <TextBlock Text="Cards" Grid.Column="0" Grid.Row="0" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center"/>
-                                    <TextBlock x:Name="Player2Cards" Text="0" Grid.Column="0" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Player2Cards}" Grid.Column="0" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
                                     <TextBlock Text="Dev Cards" Grid.Column="1" Grid.Row="0" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center"/>
-                                    <TextBlock x:Name="Player2DevCards" Text="0" Grid.Column="1" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Player2DevCards}" Grid.Column="1" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
                                     <TextBlock Text="Knights" Grid.Column="2" Grid.Row="0" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center"/>
-                                    <TextBlock x:Name="Player2Knights" Text="0" Grid.Column="2" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Player2Knights}" Grid.Column="2" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
                                     <TextBlock Text="Points" Grid.Column="3" Grid.Row="0" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center"/>
-                                    <TextBlock x:Name="Player2Points" Text="0" Grid.Column="3" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Player2Points}" Grid.Column="3" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
                                 </Grid>
                             </Grid>
                         </Border>
 
                         <!-- PLAYER 3 -->
-                        <Border x:Name="PlayerPanel3" Background="#CFCFCF" CornerRadius="6" Padding="8" Grid.Row="2">
+                        <Border x:Name="PlayerPanel3" Background="#CFCFCF" CornerRadius="6" Padding="8" Grid.Row="2" BorderThickness="2" BorderBrush="{Binding Player3Border}">
                             <Grid ColumnDefinitions="80,*">
-                                <TextBlock x:Name="PlayerName3" Text="Player3" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Player3Name}" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"/>
                                 <Grid Grid.Column="1" ColumnDefinitions="*,*,*,*" RowDefinitions="Auto,Auto">
                                     <TextBlock Text="Cards" Grid.Column="0" Grid.Row="0" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center"/>
-                                    <TextBlock x:Name="Player3Cards" Text="0" Grid.Column="0" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Player3Cards}" Grid.Column="0" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
                                     <TextBlock Text="Dev Cards" Grid.Column="1" Grid.Row="0" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center"/>
-                                    <TextBlock x:Name="Player3DevCards" Text="0" Grid.Column="1" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Player3DevCards}" Grid.Column="1" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
                                     <TextBlock Text="Knights" Grid.Column="2" Grid.Row="0" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center"/>
-                                    <TextBlock x:Name="Player3Knights" Text="0" Grid.Column="2" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Player3Knights}" Grid.Column="2" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
                                     <TextBlock Text="Points" Grid.Column="3" Grid.Row="0" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center"/>
-                                    <TextBlock x:Name="Player3Points" Text="0" Grid.Column="3" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Player3Points}" Grid.Column="3" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
                                 </Grid>
                             </Grid>
                         </Border>
 
                         <!-- PLAYER 4 -->
-                        <Border x:Name="PlayerPanel4" Background="#CFCFCF" CornerRadius="6" Padding="8" Grid.Row="3">
+                        <Border x:Name="PlayerPanel4" Background="#CFCFCF" CornerRadius="6" Padding="8" Grid.Row="3" BorderThickness="2" BorderBrush="{Binding Player4Border}">
                             <Grid ColumnDefinitions="80,*">
-                                <TextBlock x:Name="PlayerName4" Text="Player4" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Player4Name}" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"/>
                                 <Grid Grid.Column="1" ColumnDefinitions="*,*,*,*" RowDefinitions="Auto,Auto">
                                     <TextBlock Text="Cards" Grid.Column="0" Grid.Row="0" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center"/>
-                                    <TextBlock x:Name="Player4Cards" Text="0" Grid.Column="0" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Player4Cards}" Grid.Column="0" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
                                     <TextBlock Text="Dev Cards" Grid.Column="1" Grid.Row="0" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center"/>
-                                    <TextBlock x:Name="Player4DevCards" Text="0" Grid.Column="1" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Player4DevCards}" Grid.Column="1" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
                                     <TextBlock Text="Knights" Grid.Column="2" Grid.Row="0" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center"/>
-                                    <TextBlock x:Name="Player4Knights" Text="0" Grid.Column="2" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Player4Knights}" Grid.Column="2" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
                                     <TextBlock Text="Points" Grid.Column="3" Grid.Row="0" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center"/>
-                                    <TextBlock x:Name="Player4Points" Text="0" Grid.Column="3" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Player4Points}" Grid.Column="3" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
                                 </Grid>
                             </Grid>
                         </Border>

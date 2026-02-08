@@ -1,24 +1,28 @@
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Media;
+using Avalonia.Input;
+using Avalonia.VisualTree;
 
-namespace Catan.DebugClient
+namespace Catan.DebugClient.Views
 {
     public partial class Vertex : UserControl
     {
-        public static readonly StyledProperty<IBrush> FillProperty =
-            AvaloniaProperty.Register<Vertex, IBrush>(nameof(Fill), Brushes.White);
-
-        public IBrush Fill
-        {
-            get => GetValue(FillProperty);
-            set => SetValue(FillProperty, value);
-        }
+        public VertexModel? VertexModel { get; set; }
 
         public Vertex()
         {
             InitializeComponent();
-            DataContext = this;
+            this.PointerPressed += Vertex_PointerPressed;
+        }
+
+        private void Vertex_PointerPressed(object? sender, PointerPressedEventArgs e)
+        {
+            if (VertexModel == null) return;
+
+            var parentVM = this.FindAncestorOfType<CatanView>()?.DataContext as CatanViewModel;
+            if (parentVM != null)
+            {
+                parentVM.TryPlaceSettlement(VertexModel);
+            }
         }
     }
 }
