@@ -46,488 +46,130 @@
         <Canvas x:Name="HexBoard" Width="600" Height="530">
             <!-- ================= HEXES ================= -->
             <!-- ROW 1: 3 hexes -->
-            <local:HexTile Canvas.Left="150" Canvas.Top="20" Fill="ForestGreen" Label="Wood 8"/>
-            <local:HexTile Canvas.Left="250" Canvas.Top="20" Fill="SandyBrown" Label="Brick 4"/>
-            <local:HexTile Canvas.Left="350" Canvas.Top="20" Fill="LightGreen" Label="Sheep 11"/>
+            <local:HexTile Canvas.Left="150" Canvas.Top="20"/>
+            <local:HexTile Canvas.Left="250" Canvas.Top="20"/>
+            <local:HexTile Canvas.Left="350" Canvas.Top="20"/>
 
             <!-- ROW 2: 4 hexes -->
-            <local:HexTile Canvas.Left="100" Canvas.Top="106.25" Fill="LightGray" Label="Ore 3"/>
-            <local:HexTile Canvas.Left="200" Canvas.Top="106.25" Fill="ForestGreen" Label="Wood 9"/>
-            <local:HexTile Canvas.Left="300" Canvas.Top="106.25" Fill="SandyBrown" Label="Brick 10"/>
-            <local:HexTile Canvas.Left="400" Canvas.Top="106.25" Fill="LightGreen" Label="Sheep 5"/>
+            <local:HexTile Canvas.Left="100" Canvas.Top="106.25"/>
+            <local:HexTile Canvas.Left="200" Canvas.Top="106.25"/>
+            <local:HexTile Canvas.Left="300" Canvas.Top="106.25"/>
+            <local:HexTile Canvas.Left="400" Canvas.Top="106.25"/>
 
             <!-- ROW 3: 5 hexes -->
-            <local:HexTile Canvas.Left="50" Canvas.Top="192.5" Fill="LightGray" Label="Ore 8"/>
-            <local:HexTile Canvas.Left="150" Canvas.Top="192.5" Fill="ForestGreen" Label="Wood 4"/>
-            <local:HexTile Canvas.Left="250" Canvas.Top="192.5" Fill="Goldenrod" Label="Desert"/>
-            <local:HexTile Canvas.Left="350" Canvas.Top="192.5" Fill="LightGreen" Label="Sheep 6"/>
-            <local:HexTile Canvas.Left="450" Canvas.Top="192.5" Fill="LightGray" Label="Ore 2"/>
+            <local:HexTile Canvas.Left="50" Canvas.Top="192.5"/>
+            <local:HexTile Canvas.Left="150" Canvas.Top="192.5"/>
+            <local:HexTile Canvas.Left="250" Canvas.Top="192.5"/>
+            <local:HexTile Canvas.Left="350" Canvas.Top="192.5"/>
+            <local:HexTile Canvas.Left="450" Canvas.Top="192.5"/>
 
             <!-- ROW 4: 4 hexes -->
-            <local:HexTile Canvas.Left="100" Canvas.Top="278.75" Fill="ForestGreen" Label="Wood 3"/>
-            <local:HexTile Canvas.Left="200" Canvas.Top="278.75" Fill="SandyBrown" Label="Brick 11"/>
-            <local:HexTile Canvas.Left="300" Canvas.Top="278.75" Fill="LightGreen" Label="Sheep 12"/>
-            <local:HexTile Canvas.Left="400" Canvas.Top="278.75" Fill="LightGray" Label="Ore 9"/>
+            <local:HexTile Canvas.Left="100" Canvas.Top="278.75"/>
+            <local:HexTile Canvas.Left="200" Canvas.Top="278.75"/>
+            <local:HexTile Canvas.Left="300" Canvas.Top="278.75"/>
+            <local:HexTile Canvas.Left="400" Canvas.Top="278.75"/>
 
             <!-- ROW 5: 3 hexes -->
-            <local:HexTile Canvas.Left="150" Canvas.Top="365" Fill="ForestGreen" Label="Wood 5"/>
-            <local:HexTile Canvas.Left="250" Canvas.Top="365" Fill="SandyBrown" Label="Brick 6"/>
-            <local:HexTile Canvas.Left="350" Canvas.Top="365" Fill="LightGreen" Label="Sheep 10"/>
+            <local:HexTile Canvas.Left="150" Canvas.Top="365"/>
+            <local:HexTile Canvas.Left="250" Canvas.Top="365"/>
+            <local:HexTile Canvas.Left="350" Canvas.Top="365"/>
 
             <!-- ================= EDGES ================= -->
             <!-- ROW 1 edges -->
-            <!-- <Line x:Name="edge0" X1="190" Y1="15" X2="142.5" Y2="43" Stroke="Gray" StrokeThickness="3"/> -->
-            <Path x:Name="edge1" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="195,22" EndPoint="147.5,50"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge2" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="195,20" EndPoint="247.5,50"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge3" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="295,22" EndPoint="247.5,50"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge4" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="295,20" EndPoint="347.5,50"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge5" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="395,22" EndPoint="347.5,50"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge6" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="395,20" EndPoint="447.5,50"/>
-                </Path.Data>
-            </Path>
+            <local:Edge x:Name="edge1"/>
+            <local:Edge x:Name="edge2"/>
+            <local:Edge x:Name="edge3"/>
+            <local:Edge x:Name="edge4"/>
+            <local:Edge x:Name="edge5"/>
+            <local:Edge x:Name="edge6"/>
 
             <!-- ROW 2 edges -->
 
-            <Path x:Name="edge7" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="147.5,50" EndPoint="147.5,107.5"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge8" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="247.5,50" EndPoint="247.5,107.5"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge9" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="347.5,50" EndPoint="347.5,107.5"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge10" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="447.5,50" EndPoint="447.5,107.5"/>
-                </Path.Data>
-            </Path>
+            <local:Edge x:Name="edge7"/>
+            <local:Edge x:Name="edge8"/>
+            <local:Edge x:Name="edge9"/>
+            <local:Edge x:Name="edge10"/>
             
-
             <!-- ROW 3 edges -->
-            <Path x:Name="edge11" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="147.5,107.5" EndPoint="95,135.5"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge12" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="147.5,107.5" EndPoint="195,132.5"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge13" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="247.5,107.5" EndPoint="195,135.5"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge14" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="247.5,107.5" EndPoint="295,132.5"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge15" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="347.5,107.5" EndPoint="295,135.5"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge16" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="347.5,107.5" EndPoint="395,132.5"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge17" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="447.5,107.5" EndPoint="395,135.5"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge18" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="447.5,107.5" EndPoint="495,132.5"/>
-                </Path.Data>
-            </Path>
-
+            <local:Edge x:Name="edge11"/>
+            <local:Edge x:Name="edge12"/>
+            <local:Edge x:Name="edge13"/>
+            <local:Edge x:Name="edge14"/>
+            <local:Edge x:Name="edge15"/>
+            <local:Edge x:Name="edge16"/>
+            <local:Edge x:Name="edge17"/>
+            <local:Edge x:Name="edge18"/>
 
             <!-- ROW 4 edges -->
-            <Path x:Name="edge19" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="100,135.5" EndPoint="100,193"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge20" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="200,135.5" EndPoint="200,193"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge21" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="300,135.5" EndPoint="300,193"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge22" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="400,135.5" EndPoint="400,193"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge23" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="500,135.5" EndPoint="500,193"/>
-                </Path.Data>
-            </Path>
+            <local:Edge x:Name="edge19"/>
+            <local:Edge x:Name="edge20"/>
+            <local:Edge x:Name="edge21"/>
+            <local:Edge x:Name="edge22"/>
+            <local:Edge x:Name="edge23"/>
 
             <!-- ROW 5 edges -->
-            <Path x:Name="edge24" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="100,193" EndPoint="47.5,221"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge25" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="100,193" EndPoint="147.5,221"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge26" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="200,193" EndPoint="147.5,221"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge27" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="200,193" EndPoint="247.5,221"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge28" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="300,193" EndPoint="247.5,221"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge29" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="300,193" EndPoint="347.5,221"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge30" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="400,193" EndPoint="347.5,221"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge31" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="400,193" EndPoint="447.5,221"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge32" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="500,193" EndPoint="447.5,221"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge33" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="500,193" EndPoint="547.5,221"/>
-                </Path.Data>
-            </Path>
+            <local:Edge x:Name="edge24"/>
+            <local:Edge x:Name="edge25"/>
+            <local:Edge x:Name="edge26"/>
+            <local:Edge x:Name="edge27"/>
+            <local:Edge x:Name="edge28"/>
+            <local:Edge x:Name="edge29"/>
+            <local:Edge x:Name="edge30"/>
+            <local:Edge x:Name="edge31"/>
+            <local:Edge x:Name="edge32"/>
+            <local:Edge x:Name="edge33"/>
 
             <!-- ROW 6 edges -->
-
-            <Path x:Name="edge34" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="47.5,221" EndPoint="47.5,276.5"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge35" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="147.5,221" EndPoint="147.5,276.5"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge36" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="247.5,221" EndPoint="247.5,276.5"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge37" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="347.5,221" EndPoint="347.5,276.5"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge38" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="447.5,221" EndPoint="447.5,276.5"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge39" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="547.5,221" EndPoint="547.5,276.5"/>
-                </Path.Data>
-            </Path>
+            <local:Edge x:Name="edge34"/>
+            <local:Edge x:Name="edge35"/>
+            <local:Edge x:Name="edge36"/>
+            <local:Edge x:Name="edge37"/>
+            <local:Edge x:Name="edge38"/>
+            <local:Edge x:Name="edge39"/>
 
             <!-- ROW 7 edges -->
-
-            <Path x:Name="edge40" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="47.5,276.5" EndPoint="100,304.5"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge41" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="147.5,276.5" EndPoint="100,304.5"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge42" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="147.5,276.5" EndPoint="200,304.5"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge43" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="247.5,276.5" EndPoint="200,304.5"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge44" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="247.5,276.5" EndPoint="300,304.5"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge45" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="347.5,276.5" EndPoint="300,304.5"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge46" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="347.5,276.5" EndPoint="400,304.5"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge47" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="447.5,276.5" EndPoint="400,304.5"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge48" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="447.5,276.5" EndPoint="500,304.5"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge49" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="547.5,276.5" EndPoint="500,304.5"/>
-                </Path.Data>
-            </Path>
+            <local:Edge x:Name="edge40"/>
+            <local:Edge x:Name="edge41"/>
+            <local:Edge x:Name="edge42"/>
+            <local:Edge x:Name="edge43"/>
+            <local:Edge x:Name="edge44"/>
+            <local:Edge x:Name="edge45"/>
+            <local:Edge x:Name="edge46"/>
+            <local:Edge x:Name="edge47"/>
+            <local:Edge x:Name="edge48"/>
+            <local:Edge x:Name="edge49"/>
 
             <!-- ROW 8 edges -->
-            
-            <Path x:Name="edge50" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="100,304.5" EndPoint="100,362"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge51" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="200,304.5" EndPoint="200,362"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge52" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="300,304.5" EndPoint="300,362"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge53" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="400,304.5" EndPoint="400,362"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge54" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="500,304.5" EndPoint="500,362"/>
-                </Path.Data>
-            </Path>
+            <local:Edge x:Name="edge50"/>
+            <local:Edge x:Name="edge51"/>
+            <local:Edge x:Name="edge52"/>
+            <local:Edge x:Name="edge53"/>
+            <local:Edge x:Name="edge54"/>
 
             <!-- ROW 9 edges -->
+            <local:Edge x:Name="edge55"/>
+            <local:Edge x:Name="edge56"/>
+            <local:Edge x:Name="edge57"/>
+            <local:Edge x:Name="edge58"/>
+            <local:Edge x:Name="edge59"/>
+            <local:Edge x:Name="edge60"/>
+            <local:Edge x:Name="edge61"/>
+            <local:Edge x:Name="edge62"/>
 
-            <Path x:Name="edge55" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="100,362" EndPoint="152.5,390"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge56" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="200,362" EndPoint="152.5,390"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge57" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="200,362" EndPoint="252.5,390"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge58" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="300,362" EndPoint="252.5,390"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge59" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="300,362" EndPoint="352.5,390"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge60" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="400,362" EndPoint="352.5,390"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge61" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="400,362" EndPoint="452.5,390"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge62" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="500,362" EndPoint="452.5,390"/>
-                </Path.Data>
-            </Path>
-            
             <!-- ROW 10 edges -->
-
-            <Path x:Name="edge63" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="152.5,390" EndPoint="152.5,447"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge64" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="252.5,390" EndPoint="252.5,447"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge65" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="352.5,390" EndPoint="352.5,447"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge66" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="452.5,390" EndPoint="452.5,447"/>
-                </Path.Data>
-            </Path>
+            <local:Edge x:Name="edge63"/>
+            <local:Edge x:Name="edge64"/>
+            <local:Edge x:Name="edge65"/>
+            <local:Edge x:Name="edge66"/>
 
             <!-- ROW 11 edges -->
-
-            <Path x:Name="edge67" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="152.5,452" EndPoint="205,480"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge68" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="252.5,447" EndPoint="205,475"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge69" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="252.5,452" EndPoint="305,480"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge70" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="352.5,447" EndPoint="305,475"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge71" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="352.5,452" EndPoint="405,480"/>
-                </Path.Data>
-            </Path>
-
-            <Path x:Name="edge72" Stroke="White" StrokeThickness="5">
-                <Path.Data>
-                    <LineGeometry StartPoint="452.5,447" EndPoint="405,475"/>
-                </Path.Data>
-            </Path>
-
+            <local:Edge x:Name="edge67"/>
+            <local:Edge x:Name="edge68"/>
+            <local:Edge x:Name="edge69"/>
+            <local:Edge x:Name="edge70"/>
+            <local:Edge x:Name="edge71"/>
+            <local:Edge x:Name="edge72"/>
+            
             <!-- ================= PORT EDGES ================= -->
 
             <Path Stroke="White" StrokeThickness="3">
