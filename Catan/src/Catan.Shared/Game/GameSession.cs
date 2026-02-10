@@ -215,8 +215,33 @@ namespace Catan.Shared.Game
             player.Settlements.Add(settlement);
             if (vertex.Port != null && !player.Ports.Contains(vertex.Port.Type))
                 player.Ports.Add(vertex.Port.Type);
+
             vertex.Owner = player;
+
+            if (Phase == GamePhase.SetupRound2)
+            {
+                GiveInitialResourcesForSecondSettlement(player, vertex);
+            }
+
             return ActionResult.Success;
+        }
+
+        private void GiveInitialResourcesForSecondSettlement(Player player, Vertex vertex)
+        {
+            var adjacentTiles = BoardMappings.VertexToTileAdjacencyMapping[vertex.Index];
+
+            foreach (var tileIndex in adjacentTiles)
+            {
+                var tile = Board.Tiles[tileIndex];
+
+                if (tile.Resource == null || tile.Resource == ResourceType.Sand)
+                    continue;
+
+                player.Receive(new Dictionary<ResourceType, int>
+                {
+                    { tile.Resource.Value, 1 }
+                });
+            }
         }
 
         public ActionResult BuildInitialRoad(Player player, Edge edge)
