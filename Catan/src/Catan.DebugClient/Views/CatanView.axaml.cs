@@ -108,7 +108,7 @@ namespace Catan.DebugClient.Views
 
                 model.OnClicked = (edgeModel) =>
                 {
-                    vm.TryPlaceRoad(edgeModel.GameEdge);
+                    vm.TryPlaceRoad(edgeModel);
                 };
 
                 control.DataContext = model;

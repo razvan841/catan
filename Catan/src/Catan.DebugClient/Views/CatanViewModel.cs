@@ -22,10 +22,12 @@ namespace Catan.DebugClient.Views
         public GameSession Game { get; }
         public Dictionary<Player, IBrush> PlayerColors { get; } = new();
         public PlacementType CurrentPlacement { get; private set; } = PlacementType.None;
-        
+        public VertexModel? lastSettlement;
         public ObservableCollection<HexTileModel> AllTiles { get; set; } = new();
         public ObservableCollection<VertexModel> AllVertices { get; set; } = new();
         public ObservableCollection<EdgeModel> AllEdges { get; set; } = new();
+        public GameSession.GamePhase Phase => Game.Phase;
+        public GameSession.TurnPhase TurnPhase => Game.Turn;
 
         private string _gameLog = "";
         public string GameLog
@@ -71,11 +73,15 @@ namespace Catan.DebugClient.Views
             return Game.GetCurrentPlayer() == Game.Players[index];
         }
 
-        public string Wheat => Game.GetCurrentPlayer().Resources[ResourceType.Wheat].ToString();
-        public string Sheep => Game.GetCurrentPlayer().Resources[ResourceType.Sheep].ToString();
-        public string Stone => Game.GetCurrentPlayer().Resources[ResourceType.Stone].ToString();
-        public string Brick => Game.GetCurrentPlayer().Resources[ResourceType.Brick].ToString();
-        public string Wood => Game.GetCurrentPlayer().Resources[ResourceType.Wood].ToString();
+        public string Wheat => "Wheat: " + Game.GetCurrentPlayer().Resources[ResourceType.Wheat].ToString();
+        public string Sheep => "Sheep: " + Game.GetCurrentPlayer().Resources[ResourceType.Sheep].ToString();
+        public string Stone => "Stone: " + Game.GetCurrentPlayer().Resources[ResourceType.Stone].ToString();
+        public string Brick => "Brick: " + Game.GetCurrentPlayer().Resources[ResourceType.Brick].ToString();
+        public string Wood => "Wood: " + Game.GetCurrentPlayer().Resources[ResourceType.Wood].ToString();
+        public int CurrentPlayerRoads => 15 - Game.GetCurrentPlayer().Roads.Count();
+        public int CurrentPlayerSettlements => 5 - Game.GetCurrentPlayer().Settlements.Count();
+        public int CurrentPlayerCities => 4 -  Game.GetCurrentPlayer().Cities.Count();
+        public int CurrentPlayerDevCards => Game.GetCurrentPlayer().DevelopmentCards.Count();
 
         // ================= CONSTRUCTOR =================
 
@@ -84,11 +90,10 @@ namespace Catan.DebugClient.Views
             Game = game;
 
             // Assign colors to players by order
-            var colors = new[] { Brushes.Blue, Brushes.Green, Brushes.Red, Brushes.Orange };
+            var colors = new[] { Brushes.Blue, Brushes.Black, Brushes.Red, Brushes.Purple };
             for (int i = 0; i < Game.Players.Count; i++)
                 PlayerColors[Game.Players[i]] = colors[i];
 
-            // Create VertexModels for all board vertices
             foreach (var vertex in Game.Board.Vertices)
                 AllVertices.Add(new VertexModel(vertex, PlayerColors));
             foreach (var edge in Game.Board.Edges)
@@ -99,7 +104,6 @@ namespace Catan.DebugClient.Views
             if (Game.Phase == GameSession.GamePhase.SetupRound1 || Game.Phase == GameSession.GamePhase.SetupRound2)
             {
                 CurrentPlacement = PlacementType.Settlement;
-                AppendToGameLog($"Player {CurrentPlayerName}'s turn to place initial settlement!");
                 HighlightInitialValidVertices();
             }
             AppendToGameLog($"Player {CurrentPlayerName}'s turn to build initial settlement!");
@@ -109,7 +113,7 @@ namespace Catan.DebugClient.Views
 
         public void AppendToGameLog(string message)
         {
-            GameLog += message + "\n";
+            GameLog = $"{_gameLog}{message}\n";
         }
 
         public void RefreshPlayers()
@@ -135,19 +139,87 @@ namespace Catan.DebugClient.Views
             RaisePropertyChanged(nameof(Player4Points));
         }
 
-        public async void RollDice()
+        private void RefreshCurrentPlayerUI()
         {
-            var roll = Random.Shared.Next(1, 7) + Random.Shared.Next(1, 7);
+            RaisePropertyChanged(nameof(CurrentPlayerName));
 
-            // TODO: call resource distribution logic
-
-            Game.Turn = GameSession.TurnPhase.Trade;
+            RaisePropertyChanged(nameof(Player1Border));
+            RaisePropertyChanged(nameof(Player2Border));
+            RaisePropertyChanged(nameof(Player3Border));
+            RaisePropertyChanged(nameof(Player4Border));
 
             RaisePropertyChanged(nameof(Wheat));
             RaisePropertyChanged(nameof(Sheep));
             RaisePropertyChanged(nameof(Stone));
+            RaisePropertyChanged(nameof(Wood));
+            RaisePropertyChanged(nameof(Brick));
+
+            RaisePropertyChanged(nameof(CurrentPlayerRoads));
+            RaisePropertyChanged(nameof(CurrentPlayerSettlements));
+            RaisePropertyChanged(nameof(CurrentPlayerCities));
+            RaisePropertyChanged(nameof(CurrentPlayerDevCards));
+        }
+
+        private void UnhighlightVertices()
+        {
+            foreach (var vertex in AllVertices)
+            {
+                vertex.IsHighlightable = false;
+            }
+        }
+
+        private void UnhighlightEdges()
+        {
+            foreach (var edge in AllEdges)
+            {
+                edge.IsHighlightable = false;
+            }
+        }
+
+        // ================= GAME LOGIC =================
+
+        public void AdvanceGameState()
+        {
+            switch (Game.Phase)
+            {
+                case GameSession.GamePhase.SetupRound1:
+                case GameSession.GamePhase.SetupRound2:
+                    CurrentPlacement = PlacementType.Settlement;
+                    RefreshCurrentPlayerUI();
+                    AppendToGameLog($"Next setup turn: {CurrentPlayerName}");
+                    HighlightInitialValidVertices();
+                    break;
+
+                case GameSession.GamePhase.MainGame:
+                    Game.NextTurn();
+                    AppendToGameLog($"🎲 {CurrentPlayerName}'s turn: Roll the dice!");
+                    RefreshCurrentPlayerUI();
+                    break;
+            }
+
+            RefreshPlayers();
+        }
+
+        public void EndTurn()
+        {
+            Game.NextTurn();
+            AppendToGameLog($"Next turn: {CurrentPlayerName}");
+            RefreshCurrentPlayerUI();
+            RefreshPlayers();
+        }
+
+        public void OnRollDiceClicked()
+        {
+            if (Game.Turn != GameSession.TurnPhase.Roll)
+                return;
+
+            Game.RollDice();
+            AppendToGameLog($"{CurrentPlayerName} rolled the dice.");
+            RaisePropertyChanged(nameof(Wheat));
+            RaisePropertyChanged(nameof(Sheep));
             RaisePropertyChanged(nameof(Brick));
             RaisePropertyChanged(nameof(Wood));
+            RaisePropertyChanged(nameof(Stone));
         }
 
         // ================= PLACEMENT BUTTONS =================
@@ -195,56 +267,38 @@ namespace Catan.DebugClient.Views
             }
         }
 
-        private void UnhighlightVertices()
-        {
-            foreach (var vertex in AllVertices)
-            {
-                vertex.IsHighlightable = false;
-            }
-        }
-
         public void TryPlaceSettlement(VertexModel vertexModel)
         {
             if (CurrentPlacement != PlacementType.Settlement)
                 return;
 
-            bool success = false;
+            GameSession.ActionResult result;
+
+            if (Game.Phase == GameSession.GamePhase.SetupRound1 || Game.Phase == GameSession.GamePhase.SetupRound2)
+                result = Game.BuildInitialSettlement(Game.GetCurrentPlayer(), vertexModel.GameVertex);
+            else
+                result = Game.BuildSettlement(Game.GetCurrentPlayer(), vertexModel.GameVertex);
+
+            if (result != GameSession.ActionResult.Success)
+            {
+                AppendToGameLog($"Settlement failed: {result}");
+                return;
+            }
+
+            AppendToGameLog($"{CurrentPlayerName} built a settlement.");
 
             if (Game.Phase == GameSession.GamePhase.SetupRound1 || Game.Phase == GameSession.GamePhase.SetupRound2)
             {
-                success = CanBuildInitialSettlement(vertexModel.GameVertex);
+                CurrentPlacement = PlacementType.Road;
+                HighlightInitialValidEdges(vertexModel.GameVertex);
             }
             else
             {
-                success = CanBuildSettlement(vertexModel.GameVertex);
+                CurrentPlacement = PlacementType.None;
+                AdvanceGameState();
             }
 
-            if (success)
-            {
-                vertexModel.GameVertex.IsSettlement = true;
-                vertexModel.GameVertex.Owner = Game.GetCurrentPlayer();
-                AppendToGameLog($"{CurrentPlayerName} built a settlement at vertex #{vertexModel.GameVertex.Index}");
-                if (Game.Phase == GameSession.GamePhase.SetupRound1 || Game.Phase == GameSession.GamePhase.SetupRound2)
-                {
-                    CurrentPlacement = PlacementType.Road;
-                    AppendToGameLog($"{CurrentPlayerName} must now place a road connected to the settlement.");
-                    HighlightInitialValidEdges(vertexModel.GameVertex);
-                    UnhighlightVertices();
-                    return;
-                }
-            }
-            else
-            {
-                AppendToGameLog($"{CurrentPlayerName} cannot build a settlement at vertex #{vertexModel.GameVertex.Index}. Press 'Settlement' again to retry.");
-            }
-
-            CurrentPlacement = PlacementType.None;
-
-            // Reset highlights
-            foreach (var v in AllVertices)
-                v.IsHighlightable = false;
-
-            RaisePropertyChanged(nameof(AllVertices));
+            UnhighlightVertices();
         }
 
         private bool CanBuildInitialSettlement(Shared.Game.Vertex vertex)
@@ -267,8 +321,6 @@ namespace Catan.DebugClient.Views
             {
                 edge.IsHighlightable = CurrentPlacement == PlacementType.Road &&
                                          CanBuildInitialRoad(edge.GameEdge, vertex);
-                if(edge.GameEdge.Index == 0)
-                    AppendToGameLog($"{edge.IsHighlightable}");
             }
         }
         private void HighlightValidEdges()
@@ -279,8 +331,37 @@ namespace Catan.DebugClient.Views
                                          CanBuildRoad(edge.GameEdge);
             }
         }
-        public void TryPlaceRoad(Shared.Game.Edge edge)
+        public void TryPlaceRoad(EdgeModel edgeModel)
         {
+            if (CurrentPlacement != PlacementType.Road)
+                return;
+
+            var actingPlayer = Game.GetCurrentPlayer();
+
+            GameSession.ActionResult result;
+
+            if (Game.Phase == GameSession.GamePhase.SetupRound1 ||
+                Game.Phase == GameSession.GamePhase.SetupRound2)
+            {
+                result = Game.BuildInitialRoad(actingPlayer, edgeModel.GameEdge);
+            }
+            else
+            {
+                result = Game.BuildRoad(actingPlayer, edgeModel.GameEdge, false);
+            }
+
+            if (result != GameSession.ActionResult.Success)
+            {
+                AppendToGameLog($"Road failed: {result}");
+                return;
+            }
+
+            AppendToGameLog($"{actingPlayer.Username} built a road.");
+
+            CurrentPlacement = PlacementType.None;
+            UnhighlightEdges();
+
+            AdvanceGameState();
         }
 
         private bool CanBuildInitialRoad(Shared.Game.Edge edge, Shared.Game.Vertex vertex)

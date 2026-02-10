@@ -386,34 +386,35 @@
                 VerticalAlignment="Stretch"
                 HorizontalAlignment="Stretch">
 
-            <Grid RowDefinitions="2*,3*" VerticalAlignment="Stretch">
+            <Grid VerticalAlignment="Stretch">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="2*"/>
+                    <RowDefinition Height="3*"/>
+                </Grid.RowDefinitions>
 
                 <!-- ===== GAME LOG (READ-ONLY + SCROLLABLE) ===== -->
-                <Grid Grid.Row="0"
-                      Margin="0,0,0,8"
-                      VerticalAlignment="Stretch">
-
+                <Grid Grid.Row="0" Margin="0,0,0,8">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
                     <TextBlock Text="Game Log"
-                               FontWeight="Bold"
-                               FontSize="14"
-                               Grid.Row="0"
-                               Margin="0,0,0,4"/>
+                            FontWeight="Bold"
+                            FontSize="14"
+                            Grid.Row="0"
+                            Margin="0,0,0,4"/>
 
                     <Border Grid.Row="1"
                             Background="White"
                             BorderBrush="Gray"
                             BorderThickness="1"
-                            Padding="6">
-
-                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            Padding="4">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                    HorizontalScrollBarVisibility="Disabled">
                             <TextBlock Text="{Binding GameLog}"
-                                       TextWrapping="Wrap"
-                                       Foreground="Black"/>
+                                    TextWrapping="Wrap"
+                                    VerticalAlignment="Top"/>
                         </ScrollViewer>
                     </Border>
                 </Grid>
@@ -518,15 +519,15 @@
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
                         <!-- Left stack: 3 resources -->
                         <StackPanel Orientation="Vertical" Spacing="2">
-                            <TextBlock x:Name="TxtWheat" Text="Wheat: 0" FontWeight="Bold" FontSize="12"/>
-                            <TextBlock x:Name="TxtSheep" Text="Sheep: 0" FontWeight="Bold" FontSize="12"/>
-                            <TextBlock x:Name="TxtStone" Text="Stone: 0" FontWeight="Bold" FontSize="12"/>
+                            <TextBlock Text="{Binding Wheat}" FontWeight="Bold" FontSize="12"/>
+                            <TextBlock Text="{Binding Sheep}" FontWeight="Bold" FontSize="12"/>
+                            <TextBlock Text="{Binding Stone}" FontWeight="Bold" FontSize="12"/>
                         </StackPanel>
 
                         <!-- Right stack: 2 resources -->
                         <StackPanel Orientation="Vertical" Spacing="2">
-                            <TextBlock x:Name="TxtBrick" Text="Brick: 0" FontWeight="Bold" FontSize="12"/>
-                            <TextBlock x:Name="TxtWood" Text="Wood: 0" FontWeight="Bold" FontSize="12"/>
+                            <TextBlock Text="{Binding Brick}" FontWeight="Bold" FontSize="12"/>
+                            <TextBlock Text="{Binding Wood}" FontWeight="Bold" FontSize="12"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -534,7 +535,7 @@
                 <!-- Button 2: Roads -->
                 <Button x:Name="BtnRoads"
                         Grid.Column="1"
-                        Content="Roads: 15"
+                        Content="{Binding CurrentPlayerRoads, StringFormat=Roads: {0}}"
                         Background="#D3D3D3"
                         CornerRadius="8"
                         Margin="0,0,6,0"
@@ -544,14 +545,20 @@
                         VerticalAlignment="Stretch"
                         Cursor="Hand">
                         <ToolTip.Tip>
-                            Build road
+                            <ToolTip FontSize="14"
+                                    FontFamily="Arial"
+                                    Foreground="White"
+                                    Background="#1F2937"
+                                    Padding="6">
+                                Place Road
+                            </ToolTip>
                         </ToolTip.Tip>
                 </Button>
 
                 <!-- Button 3: Settlements -->
-                <Button  x:Name="BtnSettlements"
+                <Button x:Name="BtnSettlements"
                         Grid.Column="2"
-                        Content="Settles: 5"
+                        Content="{Binding CurrentPlayerSettlements, StringFormat=Settles: {0}}"
                         Background="#D3D3D3"
                         CornerRadius="8"
                         Margin="0,0,6,0"
@@ -561,14 +568,20 @@
                         VerticalAlignment="Stretch"
                         Cursor="Hand">
                         <ToolTip.Tip>
-                            Build settlement
+                            <ToolTip FontSize="14"
+                                    FontFamily="Arial"
+                                    Foreground="White"
+                                    Background="#1F2937"
+                                    Padding="6">
+                                Place Settlement
+                            </ToolTip>
                         </ToolTip.Tip>
                 </Button>
 
                 <!-- Button 4: Cities -->
                 <Button x:Name="BtnCities"
                         Grid.Column="3"
-                        Content="Cities: 4"
+                        Content="{Binding CurrentPlayerCities, StringFormat=Cities: {0}}"
                         Background="#D3D3D3"
                         CornerRadius="8"
                         Margin="0,0,6,0"
@@ -578,13 +591,19 @@
                         VerticalAlignment="Stretch"
                         Cursor="Hand">
                         <ToolTip.Tip>
-                            Build city
+                            <ToolTip FontSize="14"
+                                    FontFamily="Arial"
+                                    Foreground="White"
+                                    Background="#1F2937"
+                                    Padding="6">
+                                Upgrade to City
+                            </ToolTip>
                         </ToolTip.Tip>
                 </Button>
 
                 <Button x:Name="BtnDevCards"
                         Grid.Column="4"
-                        Content="Devs: 0"
+                        Content="{Binding CurrentPlayerDevCards, StringFormat=Devs: {0}}"
                         Background="#D3D3D3"
                         CornerRadius="8"
                         Margin="0,0,6,0"
@@ -594,7 +613,13 @@
                         VerticalAlignment="Stretch"
                         Cursor="Hand">
                         <ToolTip.Tip>
-                            Play dev card
+                            <ToolTip FontSize="14"
+                                    FontFamily="Arial"
+                                    Foreground="White"
+                                    Background="#1F2937"
+                                    Padding="6">
+                                Play dev card
+                            </ToolTip>
                         </ToolTip.Tip>
                 </Button>
 
@@ -611,7 +636,13 @@
                         VerticalAlignment="Stretch"
                         Cursor="Hand">
                         <ToolTip.Tip>
-                            Trade
+                            <ToolTip FontSize="14"
+                                    FontFamily="Arial"
+                                    Foreground="White"
+                                    Background="#1F2937"
+                                    Padding="6">
+                                Trade
+                            </ToolTip>
                         </ToolTip.Tip>
                 </Button>
 
@@ -628,7 +659,13 @@
                         VerticalAlignment="Stretch"
                         Cursor="Hand">
                         <ToolTip.Tip>
-                            End Turn
+                            <ToolTip FontSize="14"
+                                    FontFamily="Arial"
+                                    Foreground="White"
+                                    Background="#1F2937"
+                                    Padding="6">
+                                End Turn
+                            </ToolTip>
                         </ToolTip.Tip>
                 </Button>
 
@@ -647,7 +684,13 @@
                         CornerRadius="8"
                         Cursor="Hand">
                         <ToolTip.Tip>
-                            Roll dice
+                            <ToolTip FontSize="14"
+                                    FontFamily="Arial"
+                                    Foreground="White"
+                                    Background="#1F2937"
+                                    Padding="6">
+                                Roll dice
+                            </ToolTip>
                         </ToolTip.Tip>
                 </Button>
             </Grid>
