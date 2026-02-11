@@ -115,6 +115,11 @@ namespace Catan.DebugClient.Views
             }
 
             BtnSettlements.Click += (sender, e) => vm.OnSettlementButtonClicked();
+            BtnRoads.Click += (sender, e) => vm.OnRoadButtonClicked();
+            BtnCities.Click += (sender, e) => vm.OnCityButtonClicked();
+            BtnDevCards.Click += (sender, e) => vm.OnDevCardButtonClicked();
+            RollDiceButton.Click += (sender, e) => vm.OnRollDiceClicked();
+            EndTurnButton.Click += (sender, e) => vm.EndTurn();
 
             vm.RefreshPlayers();
         }

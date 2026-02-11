@@ -373,7 +373,13 @@
 
             <local:Port Canvas.Left="45" Canvas.Top="150" Fill="LightBlue" Label="3:1"/>
 
-           
+            <!-- ================= ROBBER ================= -->
+            <Ellipse x:Name="Robber"
+                    Width="30"
+                    Height="30"
+                    Fill="Gray"
+                    Stroke="Black"
+                    StrokeThickness="2"/>
         </Canvas>
 
         <!-- ================== RIGHT PANEL ================== -->
@@ -414,6 +420,7 @@
                                     HorizontalScrollBarVisibility="Disabled">
                             <TextBlock Text="{Binding GameLog}"
                                     TextWrapping="Wrap"
+                                    FontSize="10"
                                     VerticalAlignment="Top"/>
                         </ScrollViewer>
                     </Border>
@@ -431,7 +438,7 @@
                         <!-- PLAYER 1 -->
                         <Border x:Name="PlayerPanel1" Background="#CFCFCF" CornerRadius="6" Padding="8" Grid.Row="0" BorderThickness="2" BorderBrush="{Binding Player1Border}">
                             <Grid ColumnDefinitions="80,*">
-                                <TextBlock Text="{Binding Player1Name}" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Player1Name}" FontWeight="Bold" FontSize="16" VerticalAlignment="Center" Foreground="{Binding Player1Color}"/>
                                 <Grid Grid.Column="1" ColumnDefinitions="*,*,*,*" RowDefinitions="Auto,Auto">
                                     <TextBlock Text="Cards" Grid.Column="0" Grid.Row="0" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center"/>
                                     <TextBlock Text="{Binding Player1Cards}" Grid.Column="0" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
@@ -448,7 +455,7 @@
                         <!-- PLAYER 2 -->
                         <Border x:Name="PlayerPanel2" Background="#CFCFCF" CornerRadius="6" Padding="8" Grid.Row="1" BorderThickness="2" BorderBrush="{Binding Player2Border}">
                             <Grid ColumnDefinitions="80,*">
-                                <TextBlock Text="{Binding Player2Name}" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Player2Name}" FontWeight="Bold" FontSize="16" VerticalAlignment="Center" Foreground="{Binding Player2Color}"/>
                                 <Grid Grid.Column="1" ColumnDefinitions="*,*,*,*" RowDefinitions="Auto,Auto">
                                     <TextBlock Text="Cards" Grid.Column="0" Grid.Row="0" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center"/>
                                     <TextBlock Text="{Binding Player2Cards}" Grid.Column="0" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
@@ -465,7 +472,7 @@
                         <!-- PLAYER 3 -->
                         <Border x:Name="PlayerPanel3" Background="#CFCFCF" CornerRadius="6" Padding="8" Grid.Row="2" BorderThickness="2" BorderBrush="{Binding Player3Border}">
                             <Grid ColumnDefinitions="80,*">
-                                <TextBlock Text="{Binding Player3Name}" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Player3Name}" FontWeight="Bold" FontSize="16" VerticalAlignment="Center" Foreground="{Binding Player3Color}"/>
                                 <Grid Grid.Column="1" ColumnDefinitions="*,*,*,*" RowDefinitions="Auto,Auto">
                                     <TextBlock Text="Cards" Grid.Column="0" Grid.Row="0" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center"/>
                                     <TextBlock Text="{Binding Player3Cards}" Grid.Column="0" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
@@ -482,7 +489,7 @@
                         <!-- PLAYER 4 -->
                         <Border x:Name="PlayerPanel4" Background="#CFCFCF" CornerRadius="6" Padding="8" Grid.Row="3" BorderThickness="2" BorderBrush="{Binding Player4Border}">
                             <Grid ColumnDefinitions="80,*">
-                                <TextBlock Text="{Binding Player4Name}" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Player4Name}" FontWeight="Bold" FontSize="16" VerticalAlignment="Center" Foreground="{Binding Player4Color}"/>
                                 <Grid Grid.Column="1" ColumnDefinitions="*,*,*,*" RowDefinitions="Auto,Auto">
                                     <TextBlock Text="Cards" Grid.Column="0" Grid.Row="0" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center"/>
                                     <TextBlock Text="{Binding Player4Cards}" Grid.Column="0" Grid.Row="1" FontSize="14" HorizontalAlignment="Center"/>
@@ -618,7 +625,7 @@
                                     Foreground="White"
                                     Background="#1F2937"
                                     Padding="6">
-                                Play dev card
+                                Buy/Play dev card
                             </ToolTip>
                         </ToolTip.Tip>
                 </Button>
@@ -647,7 +654,8 @@
                 </Button>
 
                 <!-- Button 6: End Turn Emoji -->
-                <Button Grid.Column="6"
+                <Button x:Name="EndTurnButton"
+                        Grid.Column="6"
                         Content="⏳"
                         Background="#D3D3D3"
                         CornerRadius="8"

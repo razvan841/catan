@@ -47,7 +47,7 @@ namespace Catan.Shared.Game
             DevelopmentCardAlreadyPlayed
         }
 
-        internal static class Costs
+        public static class Costs
         {
             public static readonly Dictionary<ResourceType, int> Road = new()
             {
@@ -707,23 +707,27 @@ namespace Catan.Shared.Game
         // Dice & Resources
         // =========================
 
-        public void RollDice()
+        public (int Dice, Dictionary<Player, Dictionary<ResourceType, int>> Distribution) RollDice()
         {
             if (Phase != GamePhase.MainGame)
-                return;
+                return (-1, new Dictionary<Player, Dictionary<ResourceType, int>>());
 
             int dice = Random.Shared.Next(1, 7) + Random.Shared.Next(1, 7);
+
+            var distributed = new Dictionary<Player, Dictionary<ResourceType, int>>();
+
             if (dice != 7)
-            {
-                DistributeResources(dice);  
-            }
+                distributed = DistributeResources(dice);
+
             Turn = TurnPhase.Trade;
 
-            
+            return (dice, distributed);
         }
 
-        public void DistributeResources(int diceNumber)
+        public Dictionary<Player, Dictionary<ResourceType, int>> DistributeResources(int diceNumber)
         {
+            var distributed = new Dictionary<Player, Dictionary<ResourceType, int>>();
+
             foreach (var tile in Board.Tiles)
             {
                 if (tile.NumberToken != diceNumber || tile.Resource == null)
@@ -740,10 +744,16 @@ namespace Catan.Shared.Game
                         var settlement = Board.Settlements.FirstOrDefault(s => s.Vertex == vertex);
                         if (settlement != null)
                         {
-                            settlement.Owner.Receive(new Dictionary<ResourceType, int>
-                            {
-                                { tile.Resource.Value, 1 }
-                            });
+                            var player = settlement.Owner;
+                            player.Receive(new Dictionary<ResourceType, int> { { tile.Resource.Value, 1 } });
+
+                            if (!distributed.ContainsKey(player))
+                                distributed[player] = new Dictionary<ResourceType, int>();
+
+                            if (!distributed[player].ContainsKey(tile.Resource.Value))
+                                distributed[player][tile.Resource.Value] = 0;
+
+                            distributed[player][tile.Resource.Value] += 1;
                         }
                     }
                     else if (vertex.IsCity)
@@ -751,16 +761,23 @@ namespace Catan.Shared.Game
                         var city = Board.Cities.FirstOrDefault(c => c.Vertex == vertex);
                         if (city != null)
                         {
-                            city.Owner.Receive(new Dictionary<ResourceType, int>
-                            {
-                                { tile.Resource.Value, 2 }
-                            });
+                            var player = city.Owner;
+                            player.Receive(new Dictionary<ResourceType, int> { { tile.Resource.Value, 2 } });
+
+                            if (!distributed.ContainsKey(player))
+                                distributed[player] = new Dictionary<ResourceType, int>();
+
+                            if (!distributed[player].ContainsKey(tile.Resource.Value))
+                                distributed[player][tile.Resource.Value] = 0;
+
+                            distributed[player][tile.Resource.Value] += 2;
                         }
                     }
                 }
             }
-        }
 
+            return distributed;
+        }
 
         // =========================
         // Achievements

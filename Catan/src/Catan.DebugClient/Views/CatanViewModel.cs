@@ -5,6 +5,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+/*
+TODO:
+1. Implement development card screen (buy/play)
+2. Implement trading (with bank/port in offline, deal with player trades in online)
+3. Implement rolling a 7 (in offline, random drops, in online player chooses cards to lose)
+4. Add a robber in the ui
+*/
 namespace Catan.DebugClient.Views
 {
     public enum PlacementType
@@ -28,7 +35,6 @@ namespace Catan.DebugClient.Views
         public ObservableCollection<EdgeModel> AllEdges { get; set; } = new();
         public GameSession.GamePhase Phase => Game.Phase;
         public GameSession.TurnPhase TurnPhase => Game.Turn;
-
         private string _gameLog = "";
         public string GameLog
         {
@@ -42,6 +48,10 @@ namespace Catan.DebugClient.Views
         public string Player2Name => Game.Players[1].Username;
         public string Player3Name => Game.Players[2].Username;
         public string Player4Name => Game.Players[3].Username;
+        public IBrush Player1Color => PlayerColors[Game.Players[0]];
+        public IBrush Player2Color => PlayerColors[Game.Players[1]];
+        public IBrush Player3Color => PlayerColors[Game.Players[2]];
+        public IBrush Player4Color => PlayerColors[Game.Players[3]];
 
         public int Player1Cards => Game.Players[0].Resources.Values.Sum();
         public int Player2Cards => Game.Players[1].Resources.Values.Sum();
@@ -100,7 +110,6 @@ namespace Catan.DebugClient.Views
                 AllEdges.Add(new EdgeModel(edge, PlayerColors));
             foreach (var tile in Game.Board.Tiles)
                 AllTiles.Add(new HexTileModel(tile));
-
             if (Game.Phase == GameSession.GamePhase.SetupRound1 || Game.Phase == GameSession.GamePhase.SetupRound2)
             {
                 CurrentPlacement = PlacementType.Settlement;
@@ -113,7 +122,14 @@ namespace Catan.DebugClient.Views
 
         public void AppendToGameLog(string message)
         {
-            GameLog = $"{_gameLog}{message}\n";
+            var lines = _gameLog
+                .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                .ToList();
+            lines.Add(message);
+
+            if (lines.Count > 12)
+                lines = lines.Skip(lines.Count - 12).ToList();
+            GameLog = string.Join("\n", lines) + "\n";
         }
 
         public void RefreshPlayers()
@@ -191,8 +207,12 @@ namespace Catan.DebugClient.Views
                     break;
 
                 case GameSession.GamePhase.MainGame:
+                    CurrentPlacement = PlacementType.None;
                     Game.NextTurn();
-                    AppendToGameLog($"🎲 {CurrentPlayerName}'s turn: Roll the dice!");
+                    Game.NextTurn();
+                    Game.NextTurn();
+                    Game.NextTurn();
+                    AppendToGameLog($"Main Phase started! {CurrentPlayerName}'s turn: Roll the dice!");
                     RefreshCurrentPlayerUI();
                     break;
             }
@@ -202,8 +222,18 @@ namespace Catan.DebugClient.Views
 
         public void EndTurn()
         {
+            if (Game.Phase == GameSession.GamePhase.SetupRound1 || Game.Phase == GameSession.GamePhase.SetupRound2)
+            {
+                AppendToGameLog("You can't roll during the setup phase!");
+                return;
+            }
+            if (Game.Turn == GameSession.TurnPhase.Roll)
+            {
+                AppendToGameLog("You must roll the dice before ending your turn.");
+                return;
+            }
             Game.NextTurn();
-            AppendToGameLog($"Next turn: {CurrentPlayerName}");
+            AppendToGameLog($"Next turn: {CurrentPlayerName}. Roll the dice!");
             RefreshCurrentPlayerUI();
             RefreshPlayers();
         }
@@ -213,13 +243,24 @@ namespace Catan.DebugClient.Views
             if (Game.Turn != GameSession.TurnPhase.Roll)
                 return;
 
-            Game.RollDice();
-            AppendToGameLog($"{CurrentPlayerName} rolled the dice.");
-            RaisePropertyChanged(nameof(Wheat));
-            RaisePropertyChanged(nameof(Sheep));
-            RaisePropertyChanged(nameof(Brick));
-            RaisePropertyChanged(nameof(Wood));
-            RaisePropertyChanged(nameof(Stone));
+            var (dice, distributed) = Game.RollDice();
+            var logMessage = $"{CurrentPlayerName} rolled a {dice}!";
+
+            if (distributed.Count > 0)
+            {
+                logMessage += "\nResources received:";
+                foreach (var kv in distributed)
+                {
+                    var player = kv.Key;
+                    var resources = kv.Value;
+                    var resourcesStr = string.Join(", ", resources.Select(r => $"{r.Value} {r.Key}"));
+                    logMessage += $"\n{player.Username}: {resourcesStr}";
+                }
+            }
+
+            AppendToGameLog(logMessage);
+            RefreshCurrentPlayerUI();
+            RefreshPlayers();
         }
 
         // ================= PLACEMENT BUTTONS =================
@@ -228,14 +269,31 @@ namespace Catan.DebugClient.Views
         {
             if (Game.Phase != GameSession.GamePhase.SetupRound1 && Game.Phase != GameSession.GamePhase.SetupRound2)
             {
+                if (!Game.GetCurrentPlayer().CanAfford(GameSession.Costs.Settlement))
+                {
+                    AppendToGameLog("Can't afford a settlement!");
+                    return;
+                }
                 CurrentPlacement = PlacementType.Settlement;
                 AppendToGameLog($"{CurrentPlayerName} is placing a settlement. Click a highlighted vertex.");
                 HighlightValidVertices();
             }
+            AppendToGameLog("Can't build in setup phase!");
         }
 
         public void OnCityButtonClicked()
         {
+            if (!Game.GetCurrentPlayer().CanAfford(GameSession.Costs.City))
+            {
+                AppendToGameLog("Can't afford a City!");
+                return;
+            }
+            if (Game.Phase != GameSession.GamePhase.SetupRound1 && Game.Phase != GameSession.GamePhase.SetupRound2)
+            {
+                AppendToGameLog("Can't build in setup phase!");
+                return;
+            }
+
             CurrentPlacement = PlacementType.City;
             AppendToGameLog($"{CurrentPlayerName} is placing a city. Click a valid vertex.");
             HighlightValidCities();
@@ -243,6 +301,17 @@ namespace Catan.DebugClient.Views
 
         public void OnRoadButtonClicked()
         {
+            if (!Game.GetCurrentPlayer().CanAfford(GameSession.Costs.Road))
+            {
+                AppendToGameLog("Can't afford a road!");
+                return;
+            }
+
+            if (Game.Phase != GameSession.GamePhase.SetupRound1 && Game.Phase != GameSession.GamePhase.SetupRound2)
+            {
+                AppendToGameLog("Can't build in setup phase!");
+                return;
+            }
             CurrentPlacement = PlacementType.Road;
             AppendToGameLog($"{CurrentPlayerName} is placing a road. Click a valid edge.");
             HighlightValidEdges();
@@ -295,7 +364,6 @@ namespace Catan.DebugClient.Views
             else
             {
                 CurrentPlacement = PlacementType.None;
-                AdvanceGameState();
             }
 
             UnhighlightVertices();
@@ -340,15 +408,10 @@ namespace Catan.DebugClient.Views
 
             GameSession.ActionResult result;
 
-            if (Game.Phase == GameSession.GamePhase.SetupRound1 ||
-                Game.Phase == GameSession.GamePhase.SetupRound2)
-            {
-                result = Game.BuildInitialRoad(actingPlayer, edgeModel.GameEdge);
-            }
+            if (Game.Phase == GameSession.GamePhase.SetupRound1 || Game.Phase == GameSession.GamePhase.SetupRound2)
+                result = Game.BuildInitialRoad(actingPlayer, edgeModel.GameEdge);    
             else
-            {
                 result = Game.BuildRoad(actingPlayer, edgeModel.GameEdge, false);
-            }
 
             if (result != GameSession.ActionResult.Success)
             {
@@ -360,8 +423,8 @@ namespace Catan.DebugClient.Views
 
             CurrentPlacement = PlacementType.None;
             UnhighlightEdges();
-
             AdvanceGameState();
+
         }
 
         private bool CanBuildInitialRoad(Shared.Game.Edge edge, Shared.Game.Vertex vertex)
@@ -380,14 +443,52 @@ namespace Catan.DebugClient.Views
         // ================= CITY LOGIC =================
         private void HighlightValidCities()
         {
+            foreach (var vertex in AllVertices)
+            {
+                vertex.IsHighlightable = CurrentPlacement == PlacementType.City &&
+                                         CanBuildCity(vertex.GameVertex, Game.GetCurrentPlayer());
+            }
         }
         public void TryPlaceCity(Shared.Game.Vertex vertex)
         {
+            if (CurrentPlacement != PlacementType.City)
+                return;
+
+            var actingPlayer = Game.GetCurrentPlayer();
+
+            var settlement = actingPlayer.Settlements.FirstOrDefault(s => s.Vertex == vertex);
+            if (settlement == null)
+            {
+                AppendToGameLog($"No settlement to upgrade at this vertex!");
+                return;
+            }
+
+            GameSession.ActionResult result;
+            result = Game.UpgradeToCity(actingPlayer, settlement);
+
+            if (result != GameSession.ActionResult.Success)
+            {
+                AppendToGameLog($"City failed: {result}");
+                CurrentPlacement = PlacementType.None;
+                UnhighlightVertices();
+                return;
+            }
+
+            AppendToGameLog($"{actingPlayer.Username} upgraded to a city.");
+
+            CurrentPlacement = PlacementType.None;
+            UnhighlightVertices();
         }
-        private bool CanBuildCity(Shared.Game.Vertex vertex)
+        private bool CanBuildCity(Shared.Game.Vertex vertex, Player player)
         {
+            if(!vertex.IsSettlement || vertex.Owner != player)
+                return false;
             return true;
         }
         // ================= DEVELOPMENT CARD LOGIC =================
+
+        public void OnDevCardButtonClicked()
+        {
+        }
     }
 }
