@@ -7,6 +7,7 @@ using System.Linq;
 
 /*
 TODO:
+Update current resources after building
 1. Implement development card screen (buy/play)
 2. Implement trading (with bank/port in offline, deal with player trades in online)
 3. Implement rolling a 7 (in offline, random drops, in online player chooses cards to lose)
