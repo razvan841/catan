@@ -35,6 +35,7 @@ namespace Catan.DebugClient.Views
         public ObservableCollection<EdgeModel> AllEdges { get; set; } = new();
         public GameSession.GamePhase Phase => Game.Phase;
         public GameSession.TurnPhase TurnPhase => Game.Turn;
+        public bool inMainPhase = false;
         private string _gameLog = "";
         public string GameLog
         {
@@ -207,11 +208,14 @@ namespace Catan.DebugClient.Views
                     break;
 
                 case GameSession.GamePhase.MainGame:
+                    if(inMainPhase)
+                        break;
                     CurrentPlacement = PlacementType.None;
                     Game.NextTurn();
                     Game.NextTurn();
                     Game.NextTurn();
                     Game.NextTurn();
+                    inMainPhase = true;
                     AppendToGameLog($"Main Phase started! {CurrentPlayerName}'s turn: Roll the dice!");
                     RefreshCurrentPlayerUI();
                     break;
@@ -244,21 +248,20 @@ namespace Catan.DebugClient.Views
                 return;
 
             var (dice, distributed) = Game.RollDice();
-            var logMessage = $"{CurrentPlayerName} rolled a {dice}!";
+            AppendToGameLog($"{CurrentPlayerName} rolled a {dice}!");
 
             if (distributed.Count > 0)
             {
-                logMessage += "\nResources received:";
+                AppendToGameLog("Resources received:");
                 foreach (var kv in distributed)
                 {
                     var player = kv.Key;
                     var resources = kv.Value;
                     var resourcesStr = string.Join(", ", resources.Select(r => $"{r.Value} {r.Key}"));
-                    logMessage += $"\n{player.Username}: {resourcesStr}";
+                    AppendToGameLog($"{player.Username}: {resourcesStr}");
                 }
             }
 
-            AppendToGameLog(logMessage);
             RefreshCurrentPlayerUI();
             RefreshPlayers();
         }
@@ -267,18 +270,20 @@ namespace Catan.DebugClient.Views
 
         public void OnSettlementButtonClicked()
         {
-            if (Game.Phase != GameSession.GamePhase.SetupRound1 && Game.Phase != GameSession.GamePhase.SetupRound2)
+            if (!Game.GetCurrentPlayer().CanAfford(GameSession.Costs.Settlement))
             {
-                if (!Game.GetCurrentPlayer().CanAfford(GameSession.Costs.Settlement))
-                {
-                    AppendToGameLog("Can't afford a settlement!");
-                    return;
-                }
-                CurrentPlacement = PlacementType.Settlement;
-                AppendToGameLog($"{CurrentPlayerName} is placing a settlement. Click a highlighted vertex.");
-                HighlightValidVertices();
+                AppendToGameLog("Can't afford a settlement!");
+                return;
             }
-            AppendToGameLog("Can't build in setup phase!");
+            if (Game.Phase == GameSession.GamePhase.SetupRound1 || Game.Phase == GameSession.GamePhase.SetupRound2)
+            {
+                AppendToGameLog("Can't build in setup phase!");
+                return;
+            }
+            CurrentPlacement = PlacementType.Settlement;
+            AppendToGameLog($"{CurrentPlayerName} is placing a settlement. Click a highlighted vertex.");
+            HighlightValidVertices();
+           
         }
 
         public void OnCityButtonClicked()
@@ -288,7 +293,7 @@ namespace Catan.DebugClient.Views
                 AppendToGameLog("Can't afford a City!");
                 return;
             }
-            if (Game.Phase != GameSession.GamePhase.SetupRound1 && Game.Phase != GameSession.GamePhase.SetupRound2)
+            if (Game.Phase == GameSession.GamePhase.SetupRound1 || Game.Phase == GameSession.GamePhase.SetupRound2)
             {
                 AppendToGameLog("Can't build in setup phase!");
                 return;
@@ -307,7 +312,7 @@ namespace Catan.DebugClient.Views
                 return;
             }
 
-            if (Game.Phase != GameSession.GamePhase.SetupRound1 && Game.Phase != GameSession.GamePhase.SetupRound2)
+            if (Game.Phase == GameSession.GamePhase.SetupRound1 || Game.Phase == GameSession.GamePhase.SetupRound2)
             {
                 AppendToGameLog("Can't build in setup phase!");
                 return;

@@ -375,8 +375,8 @@
 
             <!-- ================= ROBBER ================= -->
             <Ellipse x:Name="Robber"
-                    Width="30"
-                    Height="30"
+                    Width="20"
+                    Height="20"
                     Fill="Gray"
                     Stroke="Black"
                     StrokeThickness="2"/>
