@@ -29,11 +29,23 @@ namespace Catan.DebugClient.Views
             ResourceType.Sand => Brushes.Gold,
             _ => Brushes.Gray
         };
+        public bool HasRobber => GameHex.HasRobber;
+        private bool _isRobberTargetHighlight;
+        public bool IsRobberTargetHighlight
+        {
+            get => _isRobberTargetHighlight;
+            set
+            {
+                _isRobberTargetHighlight = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsRobberTargetHighlight)));
+            }
+        }
 
         public void NotifyChanges()
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Label)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Fill)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasRobber)));
         }
     }
 }

@@ -3,14 +3,17 @@
              xmlns:local="clr-namespace:Catan.DebugClient.Views"
              x:Class="Catan.DebugClient.Views.HexTile"
              x:DataType="local:HexTileModel"
-             Width="100" Height="115">
+             Width="100"
+             Height="115"
+             PointerPressed="OnTileClicked">
 
     <Grid>
+
+        <!-- HEX SHAPE -->
         <Path Stroke="#6B8FB5"
               StrokeThickness="2"
               Stretch="Fill"
               Fill="{Binding Fill}">
-
             <Path.Data>
                 <PathGeometry>
                     <PathFigure StartPoint="50,0" IsClosed="True">
@@ -24,9 +27,23 @@
             </Path.Data>
         </Path>
 
+        <!-- LABEL -->
         <TextBlock Text="{Binding Label}"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"
                    FontWeight="Bold"/>
+
+        <!-- ROBBER (center circle) -->
+        <Ellipse Width="24"
+                 Height="24"
+                 Fill="DarkSlateGray"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center"
+                 IsVisible="{Binding HasRobber}"/>
+
+        <!-- ROBBER MOVE HIGHLIGHT -->
+        <Border Background="#40FF0000"
+                IsVisible="{Binding IsRobberTargetHighlight}"/>
+
     </Grid>
 </UserControl>

@@ -3,6 +3,7 @@
         xmlns:local="clr-namespace:Catan.DebugClient.Views"
         xmlns:shapes="clr-namespace:Avalonia.Controls.Shapes;assembly=Avalonia.Controls.Shapes"
         xmlns:vm="clr-namespace:Catan.DebugClient.Views"
+        xmlns:game="clr-namespace:Catan.Shared.Game;assembly=Catan.Shared"
         x:Class="Catan.DebugClient.Views.CatanView"
         x:DataType="vm:CatanViewModel"
         Width="1100"
@@ -10,34 +11,6 @@
         WindowStartupLocation="CenterScreen"
         Background="#7FB7E8">
     
-    <Window.Resources>
-
-        <PathGeometry x:Key="HexagonGeometry">
-            <PathGeometry.Figures>
-                <PathFigure StartPoint="0.25,0">
-                    <PolyLineSegment Points="
-                        0.75,0
-                        1,0.5
-                        0.75,1
-                        0.25,1
-                        0,0.5
-                        0.25,0"/>
-                </PathFigure>
-            </PathGeometry.Figures>
-        </PathGeometry>
-
-    </Window.Resources>
-
-    <Window.Styles>
-        <Style Selector="Border.hex-tile">
-            <Setter Property="BorderBrush" Value="#6B8FB5"/>
-            <Setter Property="BorderThickness" Value="1.5"/>
-        </Style>
-
-    </Window.Styles>
-
-
-
 
     <Grid ColumnDefinitions="*,400"
           RowDefinitions="*,100">
@@ -372,14 +345,6 @@
             <local:Port Canvas.Left="45" Canvas.Top="320" Fill="LightBlue" Label="🪨 2:1"/>
 
             <local:Port Canvas.Left="45" Canvas.Top="150" Fill="LightBlue" Label="3:1"/>
-
-            <!-- ================= ROBBER ================= -->
-            <Ellipse x:Name="Robber"
-                    Width="20"
-                    Height="20"
-                    Fill="Gray"
-                    Stroke="Black"
-                    StrokeThickness="2"/>
         </Canvas>
 
         <!-- ================== RIGHT PANEL ================== -->
@@ -507,7 +472,7 @@
                 </Border>
             </Grid>
         </Border>
-        <!-- ================== BOTTOM LEFT ================== -->
+        <!-- ================== BOTTOM PANEL ================== -->
         <Border Grid.Column="0"
                 Grid.Row="1"
                 Margin="10"
@@ -704,5 +669,92 @@
             </Grid>
         </Border>
 
+        <!-- ================= ROBBER OVERLAY ================= -->
+        <Grid IsVisible="{Binding IsRobberOverlayVisible}"
+            Grid.ColumnSpan="2"
+            Grid.RowSpan="2"
+            Background="#80000000">
+
+            <Border Background="White"
+                    Padding="20"
+                    CornerRadius="10"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Width="400">
+
+                <StackPanel Spacing="20">
+
+                    <!-- ================= DISCARD SECTION ================= -->
+                    <StackPanel IsVisible="{Binding IsDiscardVisible}">
+                        <TextBlock Text="Select cards to discard"
+                                FontSize="18"
+                                FontWeight="Bold"
+                                HorizontalAlignment="Center"/>
+
+                        <!-- Wheat -->
+                        <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                            <TextBlock Text="Wheat" Width="100"/>
+                            <Button Content="-" Width="30" Click="DecreaseDiscardWheat_Click"/>
+                            <TextBlock x:Name="SelectedWheat" Width="30" TextAlignment="Center" Text="{Binding DiscardOptions[0].Selected}"/>
+                            <Button Content="+" Width="30" Click="IncreaseDiscardWheat_Click"/>
+                        </StackPanel>
+
+                        <!-- Brick -->
+                        <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                            <TextBlock Text="Brick" Width="100"/>
+                            <Button Content="-" Width="30" Click="DecreaseDiscardBrick_Click"/>
+                            <TextBlock x:Name="SelectedBrick" Width="30" TextAlignment="Center" Text="{Binding DiscardOptions[1].Selected}"/>
+                            <Button Content="+" Width="30" Click="IncreaseDiscardBrick_Click"/>
+                        </StackPanel>
+
+                        <!-- Sheep -->
+                        <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                            <TextBlock Text="Sheep" Width="100"/>
+                            <Button Content="-" Width="30" Click="DecreaseDiscardSheep_Click"/>
+                            <TextBlock x:Name="SelectedSheep" Width="30" TextAlignment="Center" Text="{Binding DiscardOptions[2].Selected}"/>
+                            <Button Content="+" Width="30" Click="IncreaseDiscardSheep_Click"/>
+                        </StackPanel>
+
+                        <!-- Stone -->
+                        <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                            <TextBlock Text="Stone" Width="100"/>
+                            <Button Content="-" Width="30" Click="DecreaseDiscardStone_Click"/>
+                            <TextBlock x:Name="SelectedStone" Width="30" TextAlignment="Center" Text="{Binding DiscardOptions[3].Selected}"/>
+                            <Button Content="+" Width="30" Click="IncreaseDiscardStone_Click"/>
+                        </StackPanel>
+
+                        <!-- Wood -->
+                        <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                            <TextBlock Text="Wood" Width="100"/>
+                            <Button Content="-" Width="30" Click="DecreaseDiscardWood_Click"/>
+                            <TextBlock x:Name="SelectedWood" Width="30" TextAlignment="Center" Text="{Binding DiscardOptions[4].Selected}"/>
+                            <Button Content="+" Width="30" Click="IncreaseDiscardWood_Click"/>
+                        </StackPanel>
+
+                        <!-- Confirm Discard -->
+                        <Button Content="Confirm Discard"
+                                HorizontalAlignment="Center"
+                                Click="BtnConfirmDiscard_Click"/>
+                    </StackPanel>
+
+                    <!-- ================= STEAL SECTION ================= -->
+                    <StackPanel IsVisible="{Binding IsStealVisible}">
+                        <TextBlock Text="Choose a player to steal from"
+                                FontSize="18"
+                                FontWeight="Bold"
+                                HorizontalAlignment="Center"/>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
+                            <Button x:Name="StealPlayer1" Content="{Binding StealOptions[0].Username}" Click="StealPlayer1_Click" Margin="5"/>
+                            <Button x:Name="StealPlayer2" Content="{Binding StealOptions[1].Username}" Click="StealPlayer2_Click" Margin="5"/>
+                            <Button x:Name="StealPlayer3" Content="{Binding StealOptions[2].Username}" Click="StealPlayer3_Click" Margin="5"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                </StackPanel>
+            </Border>
+        </Grid>
+
     </Grid>
+
 </Window>

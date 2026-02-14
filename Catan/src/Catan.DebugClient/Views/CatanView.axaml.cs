@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using System.Collections.Generic;
 using System.Linq;
 using Catan.Shared.Game;
@@ -122,6 +123,146 @@ namespace Catan.DebugClient.Views
             EndTurnButton.Click += (sender, e) => vm.EndTurn();
 
             vm.RefreshPlayers();
+        }
+
+        // ================= DISCARD BUTTONS =================
+        private void IncreaseDiscardWheat_Click(object sender, RoutedEventArgs e)
+        {
+            var vm = DataContext as CatanViewModel;
+            if (vm != null && vm.DiscardOptions.Count > 0)
+            {
+                vm.DiscardOptions[0].Selected++;
+                SelectedWheat.Text = vm.DiscardOptions[0].Selected.ToString();
+            }
+        }
+
+        private void DecreaseDiscardWheat_Click(object sender, RoutedEventArgs e)
+        {
+            var vm = DataContext as CatanViewModel;
+            if (vm != null && vm.DiscardOptions.Count > 0 && vm.DiscardOptions[0].Selected > 0)
+            {
+                vm.DiscardOptions[0].Selected--;
+                SelectedWheat.Text = vm.DiscardOptions[0].Selected.ToString();
+            }
+        }
+
+        private void IncreaseDiscardBrick_Click(object sender, RoutedEventArgs e)
+        {
+            var vm = DataContext as CatanViewModel;
+            if (vm != null && vm.DiscardOptions.Count > 1)
+            {
+                vm.DiscardOptions[1].Selected++;
+                SelectedBrick.Text = vm.DiscardOptions[1].Selected.ToString();
+            }
+        }
+
+        private void DecreaseDiscardBrick_Click(object sender, RoutedEventArgs e)
+        {
+            var vm = DataContext as CatanViewModel;
+            if (vm != null && vm.DiscardOptions.Count > 1 && vm.DiscardOptions[1].Selected > 0)
+            {
+                vm.DiscardOptions[1].Selected--;
+                SelectedBrick.Text = vm.DiscardOptions[1].Selected.ToString();
+            }
+        }
+
+        private void IncreaseDiscardSheep_Click(object sender, RoutedEventArgs e)
+        {
+            var vm = DataContext as CatanViewModel;
+            if (vm != null && vm.DiscardOptions.Count > 2)
+            {
+                vm.DiscardOptions[2].Selected++;
+                SelectedSheep.Text = vm.DiscardOptions[2].Selected.ToString();
+            }
+        }
+
+        private void DecreaseDiscardSheep_Click(object sender, RoutedEventArgs e)
+        {
+            var vm = DataContext as CatanViewModel;
+            if (vm != null && vm.DiscardOptions.Count > 2 && vm.DiscardOptions[2].Selected > 0)
+            {
+                vm.DiscardOptions[2].Selected--;
+                SelectedSheep.Text = vm.DiscardOptions[2].Selected.ToString();
+            }
+        }
+
+        private void IncreaseDiscardStone_Click(object sender, RoutedEventArgs e)
+        {
+            var vm = DataContext as CatanViewModel;
+            if (vm != null && vm.DiscardOptions.Count > 3)
+            {
+                vm.DiscardOptions[3].Selected++;
+                SelectedStone.Text = vm.DiscardOptions[3].Selected.ToString();
+            }
+        }
+
+        private void DecreaseDiscardStone_Click(object sender, RoutedEventArgs e)
+        {
+            var vm = DataContext as CatanViewModel;
+            if (vm != null && vm.DiscardOptions.Count > 3 && vm.DiscardOptions[3].Selected > 0)
+            {
+                vm.DiscardOptions[3].Selected--;
+                SelectedStone.Text = vm.DiscardOptions[3].Selected.ToString();
+            }
+        }
+
+        private void IncreaseDiscardWood_Click(object sender, RoutedEventArgs e)
+        {
+            var vm = DataContext as CatanViewModel;
+            if (vm != null && vm.DiscardOptions.Count > 4)
+            {
+                vm.DiscardOptions[4].Selected++;
+                SelectedWood.Text = vm.DiscardOptions[4].Selected.ToString();
+            }
+        }
+
+        private void DecreaseDiscardWood_Click(object sender, RoutedEventArgs e)
+        {
+            var vm = DataContext as CatanViewModel;
+            if (vm != null && vm.DiscardOptions.Count > 4 && vm.DiscardOptions[4].Selected > 0)
+            {
+                vm.DiscardOptions[4].Selected--;
+                SelectedWood.Text = vm.DiscardOptions[4].Selected.ToString();
+            }
+        }
+
+        // ================= CONFIRM DISCARD =================
+        private void BtnConfirmDiscard_Click(object sender, RoutedEventArgs e)
+        {
+            var vm = DataContext as CatanViewModel;
+            if (vm != null)
+            {
+                // Call your existing discard logic
+                vm.ConfirmDiscard();
+            }
+        }
+
+        // ================= STEAL BUTTONS =================
+        private void StealPlayer1_Click(object sender, RoutedEventArgs e)
+        {
+            var vm = DataContext as CatanViewModel;
+            if (vm != null && vm.StealOptions.Count > 0)
+            {
+                vm.ExecuteSteal(vm.StealOptions[0]);
+            }
+        }
+
+        private void StealPlayer2_Click(object sender, RoutedEventArgs e)
+        {
+            var vm = DataContext as CatanViewModel;
+            if (vm != null && vm.StealOptions.Count > 1)
+            {
+                vm.ExecuteSteal(vm.StealOptions[1]);
+            }
+        }
+
+        private void StealPlayer3_Click(object sender, RoutedEventArgs e)
+        {
+            var vm = DataContext as CatanViewModel;
+            if (vm != null && vm.StealOptions.Count > 2)
+            {
+                vm.ExecuteSteal(vm.StealOptions[2]);
+            }
         }
     }
 }

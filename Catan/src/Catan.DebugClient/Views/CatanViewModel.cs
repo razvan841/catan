@@ -3,8 +3,8 @@ using Avalonia.Media;
 using Catan.Shared.Game;
 using System;
 using System.Collections.Generic;
+using System.Windows.Input;
 using System.Linq;
-
 /*
 TODO:
 Update current resources after building
@@ -21,6 +21,14 @@ namespace Catan.DebugClient.Views
         Settlement,
         City,
         Road
+    }
+
+    public enum RobberPhase
+    {
+        None,
+        Discarding,
+        Moving,
+        Stealing
     }
 
     public class CatanViewModel : ViewModelBase
@@ -43,6 +51,29 @@ namespace Catan.DebugClient.Views
             get => _gameLog;
             set { _gameLog = value; RaisePropertyChanged(nameof(GameLog)); }
         }
+        private RobberPhase _robberPhase = RobberPhase.None;
+        public RobberPhase CurrentRobberPhase
+        {
+            get => _robberPhase;
+            set
+            {
+                _robberPhase = value;
+                RaisePropertyChanged(nameof(CurrentRobberPhase));
+                RaisePropertyChanged(nameof(IsRobberOverlayVisible));
+                RaisePropertyChanged(nameof(IsDiscardVisible));
+                RaisePropertyChanged(nameof(IsStealVisible));
+            }
+        }        
+
+        public bool IsRobberOverlayVisible => CurrentRobberPhase != RobberPhase.None;
+        public bool IsDiscardVisible => CurrentRobberPhase == RobberPhase.Discarding;
+        public bool IsStealVisible => CurrentRobberPhase == RobberPhase.Stealing;
+
+        private Queue<Player> _playersNeedingDiscard = new();
+        private Player? _discardingPlayer;
+
+        public ObservableCollection<DiscardOption> DiscardOptions { get; } = new();
+        public ObservableCollection<Player> StealOptions { get; } = new();
 
         // Player info for UI
         public string CurrentPlayerName => Game.GetCurrentPlayer().Username;
@@ -104,7 +135,7 @@ namespace Catan.DebugClient.Views
             // Assign colors to players by order
             var colors = new[] { Brushes.Blue, Brushes.Black, Brushes.Red, Brushes.Purple };
             for (int i = 0; i < Game.Players.Count; i++)
-                PlayerColors[Game.Players[i]] = colors[i];
+                PlayerColors[Game.Players[i]] = colors[i];  
 
             foreach (var vertex in Game.Board.Vertices)
                 AllVertices.Add(new VertexModel(vertex, PlayerColors));
@@ -194,6 +225,29 @@ namespace Catan.DebugClient.Views
             }
         }
 
+        private void BeginRobberMove()
+        {
+            AppendToGameLog("Select a tile to move the robber.");
+            CurrentRobberPhase = RobberPhase.Moving;
+
+            foreach (var tile in AllTiles)
+            {
+                tile.IsRobberTargetHighlight = !tile.GameHex.HasRobber;
+            }
+        }
+
+        public void IncreaseDiscard(DiscardOption option)
+        {
+            if (option.Selected < option.Available)
+                option.Selected++;
+        }
+
+        public void DecreaseDiscard(DiscardOption option)
+        {
+            if (option.Selected > 0)
+                option.Selected--;
+        }
+
         // ================= GAME LOGIC =================
 
         public void AdvanceGameState()
@@ -251,6 +305,12 @@ namespace Catan.DebugClient.Views
             var (dice, distributed) = Game.RollDice();
             AppendToGameLog($"{CurrentPlayerName} rolled a {dice}!");
 
+            if (dice == 7)
+            {
+                HandleSevenRolled();
+                return;
+            }
+
             if (distributed.Count > 0)
             {
                 AppendToGameLog("Resources received:");
@@ -266,6 +326,166 @@ namespace Catan.DebugClient.Views
             RefreshCurrentPlayerUI();
             RefreshPlayers();
         }
+
+        private void HandleSevenRolled()
+        {
+            _playersNeedingDiscard.Clear();
+
+            foreach (var player in Game.Players)
+            {
+                int total = player.Resources.Values.Sum();
+                if (total > 7)
+                    _playersNeedingDiscard.Enqueue(player);
+            }
+
+            ProcessNextDiscard();
+        }
+
+        private void ProcessNextDiscard()
+        {
+            if (_playersNeedingDiscard.Count == 0)
+            {
+                BeginRobberMove();
+                return;
+            }
+
+            var player = _playersNeedingDiscard.Dequeue();
+
+            if (player == Game.GetCurrentPlayer())
+            {
+                PrepareDiscardSelection(player);
+            }
+            else
+            {
+                DiscardRandom(player);
+                ProcessNextDiscard();
+            }
+        }
+
+        public void TryMoveRobber(HexTileModel tile)
+        {
+            if (CurrentRobberPhase != RobberPhase.Moving)
+                return;
+
+            var result = Game.MoveRobber(Game.GetCurrentPlayer(), tile.GameHex, out var stealable);
+
+            if (result != GameSession.ActionResult.Success)
+                return;
+
+            foreach (var t in AllTiles)
+            {
+                t.NotifyChanges();
+                t.IsRobberTargetHighlight = false;
+            }
+
+            if (stealable.Count == 0)
+            {
+                FinishRobber();
+            }
+            else if (stealable.Count == 1)
+            {
+                Game.StealResource(Game.GetCurrentPlayer(), stealable[0]);
+                FinishRobber();
+            }
+            else
+            {
+                StealOptions.Clear();
+                foreach (var p in stealable)
+                    StealOptions.Add(p);
+
+                CurrentRobberPhase = RobberPhase.Stealing;
+            }
+        }
+
+        private void PrepareDiscardSelection(Player player)
+        {
+            _discardingPlayer = player;
+            DiscardOptions.Clear();
+
+            int required = player.Resources.Values.Sum() / 2;
+            AppendToGameLog($"{player.Username} must discard {required} cards!");
+
+            foreach (var kv in player.Resources)
+            {
+                if (kv.Value > 0)
+                    DiscardOptions.Add(new DiscardOption(kv.Key, kv.Value));
+            }
+
+            CurrentRobberPhase = RobberPhase.Discarding;
+        }
+
+        public void ConfirmDiscard()
+        {
+            if (_discardingPlayer == null)
+                return;
+
+            int totalResources = _discardingPlayer.Resources.Values.Sum();
+            int requiredDiscard = totalResources / 2;
+
+            int selectedCount = DiscardOptions.Sum(o => o.Selected);
+
+            if (selectedCount != requiredDiscard)
+            {
+                AppendToGameLog($"You must discard exactly {requiredDiscard} cards.");
+                return;
+            }
+
+            var discardDict = DiscardOptions
+                .Where(o => o.Selected > 0)
+                .ToDictionary(o => o.Resource, o => o.Selected);
+
+            var result = Game.DiscardResources(_discardingPlayer, discardDict);
+
+            if (result != GameSession.ActionResult.Success)
+            {
+                AppendToGameLog("Discard failed.");
+                return;
+            }
+
+            AppendToGameLog($"{_discardingPlayer.Username} discarded cards.");
+
+            DiscardOptions.Clear();
+            _discardingPlayer = null;
+
+            ProcessNextDiscard();
+        }
+        public void ExecuteSteal(Player? target)
+        {
+            if (target == null)
+                return;
+
+            Game.StealResource(Game.GetCurrentPlayer(), target);
+
+            FinishRobber();
+        }
+        private void DiscardRandom(Player player)
+        {
+            int total = player.Resources.Values.Sum();
+            int toDiscard = total / 2;
+
+            var discardDict = new Dictionary<ResourceType, int>();
+
+            var available = player.Resources
+                .Where(kv => kv.Value > 0)
+                .SelectMany(kv => Enumerable.Repeat(kv.Key, kv.Value))
+                .ToList();
+
+            for (int i = 0; i < toDiscard; i++)
+            {
+                var r = available[Random.Shared.Next(available.Count)];
+                discardDict[r] = discardDict.GetValueOrDefault(r) + 1;
+                available.Remove(r);
+            }
+
+            Game.DiscardResources(player, discardDict);
+        }
+
+        private void FinishRobber()
+        {
+            StealOptions.Clear();
+            CurrentRobberPhase = RobberPhase.None;
+        }
+
 
         // ================= PLACEMENT BUTTONS =================
 
